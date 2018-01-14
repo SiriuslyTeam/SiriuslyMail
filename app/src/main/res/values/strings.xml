@@ -24,6 +24,8 @@
 
     <!-- Strings related to send -->
     <string name="prompt_topic">Topic</string>
+    <string name="mail_text">Текст письма</string>
+    <string name="send">send</string>
 
     <string name="title_activity_read">ReadActivity</string>
 </resources>

@@ -29,7 +29,29 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/prompt_topic"
                 android:inputType="textShortMessage" />
+
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <android.support.design.widget.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:hint="@string/mail_text" />
+            </android.support.design.widget.TextInputLayout>
+
+            <Button
+                android:id="@+id/send_mail_button"
+                style="?android:textAppearanceSmall"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/send"
+                android:textStyle="bold" />
+
         </LinearLayout>
+
     </ScrollView>
 
 
