@@ -1,8 +1,8 @@
 package edu.sirius.android.siriuslymail;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.PersistableBundle;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -24,8 +24,8 @@ public class SendActivity extends AppCompatActivity {
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                //TODO place send action here
+                finish();
             }
         });
 
