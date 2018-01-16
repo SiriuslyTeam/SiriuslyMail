@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 if (mBound)
-                    mService.getPost("grafoffsergej@yandex.ru","irjkf444","imap.yandex.ru","INBOX" );
+                    mService.sendMessage("grafoffsergej@yandex.ru","smirnov.vs@my.com","","smtp.yandex.ru","test","testbody");
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
