@@ -34,4 +34,9 @@
     <string name="send">send</string>
 
     <string name="title_activity_read">ReadActivity</string>
+
+    <!--Strings related to read -->
+    <string name="from_read">From: </string>
+    <string name="to_read">To: </string>
+
 </resources>
