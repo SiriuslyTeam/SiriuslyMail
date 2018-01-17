@@ -1,8 +1,8 @@
 package edu.sirius.android.siriuslymail;
 
+import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -19,9 +19,13 @@ public class MessagesFragment extends Fragment {
 
     public MessagesFragment() {}
 
+    public void refreshMessages() {
+        DataSource.getInstance().getMessages();
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.recycler_item, container, false);
+        View rootView = inflater.inflate(R.layout.recycler_layout, container, false);
 
         final DataSource dataSource = DataSource.getInstance();
         messagesRecyclerView = rootView.findViewById(R.id.messages_recyclerview);

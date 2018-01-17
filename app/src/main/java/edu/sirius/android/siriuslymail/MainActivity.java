@@ -1,5 +1,6 @@
 package edu.sirius.android.siriuslymail;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 
@@ -25,6 +26,11 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     final String TAG = "lifecycle_main";
+    MessagesFragment messagesFragment;
+
+    private BroadcastReceiver broadcastReceiver;
+
+    Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,10 +41,11 @@ public class MainActivity extends AppCompatActivity
         //Intent testIntent = new Intent(MainActivity.this, ReadActivity.class);
         //startActivity(testIntent);
 
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle("Inbox");
         setSupportActionBar(toolbar);
 
+        messagesFragment = (MessagesFragment) getFragmentManager().findFragmentById(R.id.fragment);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -67,20 +74,31 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this,PostService.class);
-        bindService(intent,mConnection, Context.BIND_AUTO_CREATE);
+
         Log.d(TAG, "onStart()");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals("NEW_MESSAGES")) {
+                    DataSource.getInstance().update(context, "INBOX"); //TODO intent folder
+                    messagesFragment.refreshMessages();
+                }
+            }
+        };
+        Intent intent = new Intent(this,PostService.class);
+        bindService(intent,mConnection, Context.BIND_AUTO_CREATE);
         Log.d(TAG, "onResume()");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        unbindService(mConnection);
         Log.d(TAG, "onPause()");
     }
 
@@ -153,19 +171,14 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_inbox) {
-            Toolbar toolbar = findViewById(R.id.toolbar);
             toolbar.setTitle("Inbox");
         } else if (id == R.id.nav_sent) {
-            Toolbar toolbar = findViewById(R.id.toolbar);
             toolbar.setTitle("Sent");
         } else if (id == R.id.nav_trash) {
-            Toolbar toolbar = findViewById(R.id.toolbar);
             toolbar.setTitle("Trash");
         } else if (id == R.id.nav_spam) {
-            Toolbar toolbar = findViewById(R.id.toolbar);
             toolbar.setTitle("Spam");
         } else if (id == R.id.nav_draft) {
-            Toolbar toolbar = findViewById(R.id.toolbar);
             toolbar.setTitle("Draft");
         } else if (id == R.id.nav_share) {
 
@@ -189,6 +202,8 @@ public class MainActivity extends AppCompatActivity
             PostService.LocalBinder binder = (PostService.LocalBinder) service;
             mService = binder.getService();
             mBound = true;
+
+            mService.getPost("s18b3_udovichenko@179.ru", "7ufawaCr", "imap.google.com", "INBOX");
         }
 
         @Override

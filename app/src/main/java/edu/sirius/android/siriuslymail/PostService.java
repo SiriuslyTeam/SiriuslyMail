@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -141,13 +143,13 @@ public class PostService extends Service {
         }
     }
 
-    class ImapTask extends AsyncTask<Void,Void,ArrayList<Message>> {
+    class ImapTask extends AsyncTask<Void,Void,Boolean> {
         private final String email;
         private final String password;
         private final String host;
 
         @Override
-        protected ArrayList<Message> doInBackground(Void... voids) {
+        protected Boolean doInBackground(Void... voids) {
             Properties props = new Properties();
             props.put("mail.store.protocol", "imaps");
             Session session = Session.getInstance(props);
@@ -159,22 +161,39 @@ public class PostService extends Service {
                 e.printStackTrace();
             }
             try {
-                Folder inbox= store.getFolder("INBOX");
+                Folder inbox= store.getFolder("INBOX"); //TODO folder
                 inbox.open(Folder.READ_ONLY);
 
-                return new ArrayList<>(Arrays.asList(inbox.getMessages()));
-            } catch (MessagingException e) {
+                ArrayList<edu.sirius.android.siriuslymail.Message> messages = new ArrayList<>();
+
+                for (Message msg : inbox.getMessages()) {
+                    edu.sirius.android.siriuslymail.Message m = new edu.sirius.android.siriuslymail.Message();
+                    m.from = msg.getFrom()[0].toString();
+                    m.to = msg.getAllRecipients()[0].toString();
+                    m.subject = msg.getSubject();
+                    m.body = msg.getContent().toString(); //TODO MultipartMIME
+                    m.folder = "INBOX"; // TODO folder
+
+                    messages.add(m);
+                }
+
+                DataBaseHelper.insertMany(PostService.this, messages);
+
+            } catch (MessagingException | IOException e) {
                 e.printStackTrace();
+                return false;
             }
-            return null;
+            return true;
         }
 
         @Override
-        protected void onPostExecute(ArrayList<Message> messages) {
-            super.onPostExecute(messages);
-            int a =5;
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
 
-
+            if (result) {
+                Intent intent = new Intent("NEW_MESSAGES");
+                LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
+            }
         }
 
         ImapTask(String email, String password, String host){
