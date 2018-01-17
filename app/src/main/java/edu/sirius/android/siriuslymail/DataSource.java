@@ -12,16 +12,27 @@ import java.util.Map;
  */
 
 public class DataSource {
-        private List<Message>  messages=new ArrayList<>();
+    private List<Message> messages = new ArrayList<>();
     private final Map<Long, Message> idToMessage = new HashMap<>();
+
+    private static DataSource dataSource = new DataSource();
+    static DataSource getInstance() {
+        return dataSource;
+    }
+
     Message getMessage(int position) {
         return messages.get(position);
     }
 
-    List<Message> getMessages(){
+    List<Message> getMessages() {
         return messages;
     }
-    void update(Context context,String folder){
-        messages=DataBaseHelper.readFolder(context, folder);
+
+    void update(Context context, String folder) {
+        messages = DataBaseHelper.readFolder(context, folder);
+    }
+
+    int getCount() {
+        return messages.size();
     }
 }

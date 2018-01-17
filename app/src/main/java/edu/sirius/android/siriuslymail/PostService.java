@@ -6,8 +6,6 @@ import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -15,6 +13,7 @@ import java.util.Properties;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
+import javax.mail.Message;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
@@ -156,8 +155,6 @@ public class PostService extends Service {
             try {
                 store = session.getStore();
                 store.connect(host,email,password);
-            } catch (NoSuchProviderException e) {
-                e.printStackTrace();
             } catch (MessagingException e) {
                 e.printStackTrace();
             }
