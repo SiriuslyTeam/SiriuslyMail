@@ -8,10 +8,27 @@
     tools:context="edu.sirius.android.siriuslymail.MainActivity"
     tools:showIn="@layout/app_bar_main">
 
+
     <fragment
         android:id="@+id/fragment"
-        android:name="android.app.ListFragment"
+        android:name="edu.sirius.android.siriuslymail.MessagesFragment"
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:layout_weight="1" >
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/messages_recyclerview"
+                app:layoutManager="LinearLayoutManager"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </LinearLayout>
+
+    </fragment>
 </LinearLayout>
