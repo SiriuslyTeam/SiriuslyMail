@@ -20,7 +20,7 @@ public class MessagesFragment extends Fragment {
     public MessagesFragment() {}
 
     public void refreshMessages() {
-        DataSource.getInstance().getMessages();
+        messagesRecyclerView.getAdapter().notifyDataSetChanged();
     }
 
     @Override
@@ -49,7 +49,7 @@ public class MessagesFragment extends Fragment {
                     }
                 });
 
-                final Message message = dataSource.getMessage(position);
+                final Message message = dataSource.getMessage((long)position);
                 messageViewHolder.bind(message);
             }
 

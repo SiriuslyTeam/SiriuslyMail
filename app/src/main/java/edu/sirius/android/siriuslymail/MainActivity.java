@@ -85,7 +85,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals("NEW_MESSAGES")) {
-                    DataSource.getInstance().update(context, "INBOX"); //TODO intent folder
+                    DataSource.getInstance().updateFromDatabase(context, "INBOX"); //TODO intent folder
                     messagesFragment.refreshMessages();
                 }
             }
@@ -203,7 +203,7 @@ public class MainActivity extends AppCompatActivity
             mService = binder.getService();
             mBound = true;
 
-            mService.getPost("s18b3_udovichenko@179.ru", "7ufawaCr", "imap.google.com", "INBOX");
+            mService.getPost("grafoffsergej@yandex.ru", "irjkf444", "imap.yandex.ru", "INBOX");
         }
 
         @Override

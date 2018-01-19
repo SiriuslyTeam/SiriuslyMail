@@ -166,7 +166,9 @@ public class PostService extends Service {
 
                 ArrayList<edu.sirius.android.siriuslymail.Message> messages = new ArrayList<>();
 
-                for (Message msg : inbox.getMessages()) {
+                Message[] msgs = inbox.getMessages();
+
+                for (Message msg : msgs) {
                     edu.sirius.android.siriuslymail.Message m = new edu.sirius.android.siriuslymail.Message();
                     m.from = msg.getFrom()[0].toString();
                     m.to = msg.getAllRecipients()[0].toString();

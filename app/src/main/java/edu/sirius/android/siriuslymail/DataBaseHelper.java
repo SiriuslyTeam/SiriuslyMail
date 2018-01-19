@@ -73,7 +73,7 @@ class DataBaseHelper extends SQLiteOpenHelper  {
             return;
         }
 
-        //DataSource.readData(cursor);
+        //DataSource.readData(cursor); TODO
         cursorId.close();
     }
 
