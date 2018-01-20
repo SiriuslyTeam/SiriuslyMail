@@ -203,7 +203,7 @@ public class MainActivity extends AppCompatActivity
             mService = binder.getService();
             mBound = true;
 
-            mService.getPost("grafoffsergej@yandex.ru", "irjkf444", "imap.yandex.ru", "INBOX");
+            mService.getPost("grafoffsergej@yandex.ru", "irjkf444", "imap.yandex.ru","INBOX");
         }
 
         @Override

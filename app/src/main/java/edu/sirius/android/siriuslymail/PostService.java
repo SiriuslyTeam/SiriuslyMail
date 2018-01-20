@@ -9,7 +9,6 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
 import javax.mail.*;
@@ -31,8 +30,8 @@ public class PostService extends Service {
     public PostService() {
     }
 
-    public void getPost(String email,String pass,String host,String folder){
-        ImapTask task = new ImapTask(email, pass, host);
+    public void getPost(String email, String pass, String host,String folder){
+        ImapTask task = new ImapTask(email, pass, host,folder);
         task.execute();
     }
 
@@ -149,6 +148,7 @@ public class PostService extends Service {
         private final String email;
         private final String password;
         private final String host;
+        private final String folder;
 
         @Override
         protected Boolean doInBackground(Void... voids) {
@@ -163,7 +163,7 @@ public class PostService extends Service {
                 e.printStackTrace();
             }
             try {
-                Folder inbox= store.getFolder("INBOX"); //TODO folder
+                Folder inbox= store.getFolder(folder); //TODO folder
                 inbox.open(Folder.READ_ONLY);
 
                 ArrayList<edu.sirius.android.siriuslymail.Message> messages = new ArrayList<>();
@@ -176,7 +176,7 @@ public class PostService extends Service {
                     m.to = msg.getAllRecipients()[0].toString();
                     m.subject = msg.getSubject();
                     m.body = msg.getContent().toString(); //TODO MultipartMIME
-                    m.folder = "INBOX"; // TODO folder
+                    m.folder = folder; // TODO folder
 
                     messages.add(m);
                 }
@@ -200,10 +200,11 @@ public class PostService extends Service {
             }
         }
 
-        ImapTask(String email, String password, String host){
+        ImapTask(String email, String password, String host,String folder){
             this.email = email;
             this.password = password;
             this.host = host;
+            this.folder=folder;
         }
     }
 

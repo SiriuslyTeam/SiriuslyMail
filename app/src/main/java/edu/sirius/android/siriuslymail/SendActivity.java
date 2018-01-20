@@ -6,15 +6,28 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.EditText;
 
 public class SendActivity extends AppCompatActivity {
 
     final String TAG = "lifecycle_send";
 
+    private AutoCompleteTextView email;
+    private AutoCompleteTextView copy;
+    private EditText topic;
+    private AutoCompleteTextView body;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
+        email = findViewById(R.id.toEmail);
+        copy = findViewById(R.id.copyEmail);
+        topic = findViewById(R.id.topic);
+        body = findViewById(R.id.body);
+
+
         setContentView(R.layout.activity_send);
         Toolbar toolbar = findViewById(R.id.toolbar_send);
         toolbar.setTitle("Send email");

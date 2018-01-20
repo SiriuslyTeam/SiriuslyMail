@@ -258,7 +258,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // perform the user login attempt.
             showProgress(true);
             PostService postService = new PostService();
-            mAuthTask = postService.new ImapTask(email, password, host);
+            mAuthTask = postService.new ImapTask(email, password, host,"INBOX");
             mAuthTask.execute((Void) null);
         }
     }
