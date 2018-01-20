@@ -25,6 +25,8 @@ import java.util.concurrent.Executors;
 public class PostService extends Service {
     private final ExecutorService pool = Executors.newFixedThreadPool(1);
 
+    private String INTENT_NEW_MESSAGES = "NEW_MESSAGES";
+
     private final IBinder mBinder = new LocalBinder();
     public PostService() {
     }
@@ -193,7 +195,7 @@ public class PostService extends Service {
             super.onPostExecute(result);
 
             if (result) {
-                Intent intent = new Intent("NEW_MESSAGES");
+                Intent intent = new Intent(INTENT_NEW_MESSAGES);
                 LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
             }
         }
