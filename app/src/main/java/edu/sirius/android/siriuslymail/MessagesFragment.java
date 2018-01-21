@@ -17,6 +17,8 @@ public class MessagesFragment extends Fragment {
 
     RecyclerView messagesRecyclerView;
 
+
+
     public MessagesFragment() {}
 
     public void refreshMessages() {

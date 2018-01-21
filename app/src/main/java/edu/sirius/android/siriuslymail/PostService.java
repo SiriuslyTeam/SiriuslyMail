@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ import java.util.concurrent.Executors;
 public class PostService extends Service {
     private final ExecutorService pool = Executors.newFixedThreadPool(1);
 
+
     public static final String INTENT_NEW_MESSAGES = "NEW_MESSAGES";
     private String SUCCESS_LOGIN = "IS_SUCCESS";
 
@@ -32,9 +34,13 @@ public class PostService extends Service {
     public PostService() {
     }
 
-    public void getPost(String email,String pass,String host,String folder,int quantityMessagesToDownload){
-        ImapTask task = new ImapTask(email, pass, host, quantityMessagesToDownload);
+    public void auth(String email, String pass, String host){
+        ImapTaskAuth task = new ImapTaskAuth(email, pass, host);
         task.execute();
+    }
+
+    public void getPost(String email, String pass, String post, String folder) {
+
     }
 
     public void sendMessage(String emailFrom,String emailTo,String password,String host,String subject,String body){
@@ -146,17 +152,56 @@ public class PostService extends Service {
         }
     }
 
-    class ImapTask extends AsyncTask<Void,Void,Boolean> {
+    class ImapTaskAuth extends AsyncTask<Void,Void,Boolean> {
         private final String email;
         private final String password;
         private final String host;
-        private int quantityMessagesToDownload;
         @Override
         protected Boolean doInBackground(Void... voids) {
             Properties props = new Properties();
             props.put("mail.store.protocol", "imaps");
             Session session = Session.getInstance(props);
-            Store store= null;
+            Store store;
+            try {
+                store = session.getStore();
+                store.connect(host,email,password);
+                return true;
+            } catch (MessagingException e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
+
+            Intent intent = new Intent(INTENT_NEW_MESSAGES);
+            intent.putExtra(SUCCESS_LOGIN, result);
+            LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
+
+        }
+
+        ImapTaskAuth(String email, String password, String host){
+            this.email = email;
+            this.password = password;
+            this.host = host;
+        }
+    }
+
+    class ImapTaskPost extends AsyncTask<Void, Void, Boolean> {
+        private final String email;
+        private final String password;
+        private final String host;
+        private final String folder;
+        private final int quantityMessagesToDownload;
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            Properties props = new Properties();
+            props.put("mail.store.protocol", "imaps");
+            Session session = Session.getInstance(props);
+            Store store;
             try {
                 store = session.getStore();
                 store.connect(host,email,password);
@@ -165,7 +210,7 @@ public class PostService extends Service {
                 return false;
             }
             try {
-                Folder inbox= store.getFolder("INBOX"); //TODO folder
+                Folder inbox= store.getFolder(folder); //TODO folder
                 inbox.open(Folder.READ_ONLY);
 
                 ArrayList<edu.sirius.android.siriuslymail.Message> messages = new ArrayList<>();
@@ -202,22 +247,12 @@ public class PostService extends Service {
             return true;
         }
 
-        @Override
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
-
-            Intent intent = new Intent(INTENT_NEW_MESSAGES);
-            intent.putExtra(SUCCESS_LOGIN, result);
-            LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
-
-        }
-
-        ImapTask(String email, String password, String host,int quantityMessagesToDownload){
+        ImapTaskPost(String email, String password, String host, String folder, int quantityMessagesToDownload) {
             this.email = email;
             this.password = password;
             this.host = host;
-            this.quantityMessagesToDownload=quantityMessagesToDownload;
+            this.folder = folder;
+            this.quantityMessagesToDownload = quantityMessagesToDownload;
         }
     }
-
 }
