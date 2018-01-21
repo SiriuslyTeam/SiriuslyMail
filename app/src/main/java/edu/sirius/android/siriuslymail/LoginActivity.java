@@ -3,10 +3,18 @@ package edu.sirius.android.siriuslymail;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.IBinder;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -35,6 +43,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.Manifest.permission.READ_CONTACTS;
+import static edu.sirius.android.siriuslymail.PostService.INTENT_NEW_MESSAGES;
 
 /**
  * A login screen that offers login via email/password.
@@ -42,6 +51,9 @@ import static android.Manifest.permission.READ_CONTACTS;
 public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
     final String TAG = "lifecycle_login";
+    private String SUCCESS_LOGIN = "IS_SUCCESS";
+
+    private BroadcastReceiver broadcastReceiver;
 
     /**
      * Id to identity READ_CONTACTS permission request.
@@ -100,8 +112,46 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
+        PostService mService;
+        boolean mBound = false;
+
+
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                boolean success = intent.getExtras().getBoolean(SUCCESS_LOGIN);
+                if (success) {
+                    finish();
+                    Intent intentToMain = new Intent(LoginActivity.this, MainActivity.class);
+                    startActivity(intentToMain);
+                } else {
+                    Snackbar snackbar = Snackbar.make(findViewById(R.id.login_form), "Email, password or host is incorrect", Snackbar.LENGTH_LONG);
+                    snackbar.show();
+                }
+            }
+        };
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(INTENT_NEW_MESSAGES));
+
         Log.d(TAG, "onCreate()");
     }
+
+    PostService mService;
+    boolean mBound = false;
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+
+            PostService.LocalBinder binder = (PostService.LocalBinder) service;
+            mService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
 
     @Override
     protected void onStart() {
@@ -112,12 +162,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @Override
     protected void onResume() {
         super.onResume();
+        Intent intent = new Intent(this, PostService.class);
+        bindService(intent,mConnection, Context.BIND_AUTO_CREATE);
         Log.d(TAG, "onResume()");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        unbindService(mConnection);
         Log.d(TAG, "onPause()");
     }
 
@@ -130,6 +183,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
         Log.d(TAG, "onDestroy()");
     }
 
@@ -247,6 +301,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             cancel = true;
         } else if (!isHostValid(host)) {
             mHostView.setError(getString(R.string.error_invalid_host));
+            focusView = mHostView;
+            cancel = true;
         }
 
         if (cancel) {
@@ -257,8 +313,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            PostService postService = new PostService();
-            mAuthTask = postService.new ImapTask(email, password, host,"INBOX");
+            mAuthTask = mService.new ImapTask(email, password, host, 10);
             mAuthTask.execute((Void) null);
         }
     }

@@ -62,7 +62,6 @@ public class MainActivity extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
@@ -90,7 +89,7 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         };
-        Intent intent = new Intent(this,PostService.class);
+        Intent intent = new Intent(this, PostService.class);
         bindService(intent,mConnection, Context.BIND_AUTO_CREATE);
         Log.d(TAG, "onResume()");
     }
@@ -203,7 +202,7 @@ public class MainActivity extends AppCompatActivity
             mService = binder.getService();
             mBound = true;
 
-            mService.getPost("grafoffsergej@yandex.ru", "irjkf444", "imap.yandex.ru","INBOX");
+            mService.getPost("grafoffsergej@yandex.ru", "irjkf444", "imap.yandex.ru", "INBOX", 10);
         }
 
         @Override

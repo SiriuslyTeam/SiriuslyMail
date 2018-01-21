@@ -9,6 +9,7 @@ import android.support.v4.content.LocalBroadcastManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Properties;
 import javax.mail.*;
@@ -24,14 +25,15 @@ import java.util.concurrent.Executors;
 public class PostService extends Service {
     private final ExecutorService pool = Executors.newFixedThreadPool(1);
 
-    private String INTENT_NEW_MESSAGES = "NEW_MESSAGES";
+    public static final String INTENT_NEW_MESSAGES = "NEW_MESSAGES";
+    private String SUCCESS_LOGIN = "IS_SUCCESS";
 
     private final IBinder mBinder = new LocalBinder();
     public PostService() {
     }
 
-    public void getPost(String email, String pass, String host,String folder){
-        ImapTask task = new ImapTask(email, pass, host,folder);
+    public void getPost(String email,String pass,String host,String folder,int quantityMessagesToDownload){
+        ImapTask task = new ImapTask(email, pass, host, quantityMessagesToDownload);
         task.execute();
     }
 
@@ -148,8 +150,7 @@ public class PostService extends Service {
         private final String email;
         private final String password;
         private final String host;
-        private final String folder;
-
+        private int quantityMessagesToDownload;
         @Override
         protected Boolean doInBackground(Void... voids) {
             Properties props = new Properties();
@@ -161,29 +162,40 @@ public class PostService extends Service {
                 store.connect(host,email,password);
             } catch (MessagingException e) {
                 e.printStackTrace();
+                return false;
             }
             try {
-                Folder inbox= store.getFolder(folder); //TODO folder
+                Folder inbox= store.getFolder("INBOX"); //TODO folder
                 inbox.open(Folder.READ_ONLY);
 
                 ArrayList<edu.sirius.android.siriuslymail.Message> messages = new ArrayList<>();
 
                 Message[] msgs = inbox.getMessages();
+                int quantityAlreadyDownload=0;
 
-                for (Message msg : msgs) {
-                    edu.sirius.android.siriuslymail.Message m = new edu.sirius.android.siriuslymail.Message();
-                    m.from = msg.getFrom()[0].toString();
-                    m.to = msg.getAllRecipients()[0].toString();
-                    m.subject = msg.getSubject();
-                    m.body = msg.getContent().toString(); //TODO MultipartMIME
-                    m.folder = folder; // TODO folder
 
-                    messages.add(m);
+                for (int msgsIndex = msgs.length - 1; msgsIndex >= 0; --msgsIndex) {
+                    try{
+                        Message msg = msgs[msgsIndex];
+                        edu.sirius.android.siriuslymail.Message m = new edu.sirius.android.siriuslymail.Message();
+                        m.from = msg.getFrom()[0].toString();
+                        m.to = msg.getAllRecipients()[0].toString();
+                        m.subject = msg.getSubject();
+                        m.body = msg.getContent().toString(); //TODO MultipartMIME
+                        m.folder = "INBOX"; // TODO folder
+
+                        messages.add(m);
+                        quantityAlreadyDownload++;
+                        if (quantityAlreadyDownload == quantityMessagesToDownload)
+                            break;
+                    }catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 DataBaseHelper.insertMany(PostService.this, messages);
 
-            } catch (MessagingException | IOException e) {
+            } catch (MessagingException e) {
                 e.printStackTrace();
                 return false;
             }
@@ -194,17 +206,17 @@ public class PostService extends Service {
         protected void onPostExecute(Boolean result) {
             super.onPostExecute(result);
 
-            if (result) {
-                Intent intent = new Intent(INTENT_NEW_MESSAGES);
-                LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
-            }
+            Intent intent = new Intent(INTENT_NEW_MESSAGES);
+            intent.putExtra(SUCCESS_LOGIN, result);
+            LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
+
         }
 
-        ImapTask(String email, String password, String host,String folder){
+        ImapTask(String email, String password, String host,int quantityMessagesToDownload){
             this.email = email;
             this.password = password;
             this.host = host;
-            this.folder=folder;
+            this.quantityMessagesToDownload=quantityMessagesToDownload;
         }
     }
 

@@ -77,7 +77,7 @@ class DataBaseHelper extends SQLiteOpenHelper  {
         cursorId.close();
     }
 
-    static void insertMany(Context context, List<Message> messages){
+    static void insertMany(Context context, ArrayList<Message> messages){
         SQLiteDatabase database=getInstance(context).getWritableDatabase();
 
 
@@ -96,8 +96,4 @@ class DataBaseHelper extends SQLiteOpenHelper  {
         SQLiteDatabase database=getInstance(context).getWritableDatabase();
         database.delete("Message","id =" + id,null);
     }
-
-
-
-
 }
