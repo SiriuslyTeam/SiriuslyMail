@@ -4,13 +4,17 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.IBinder;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.app.LoaderManager.LoaderCallbacks;
 
@@ -108,7 +112,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
 
-        registerReceiver(broadcastReceiver, new IntentFilter(INTENT_NEW_MESSAGES));
+        PostService mService;
+        boolean mBound = false;
+
 
         broadcastReceiver = new BroadcastReceiver() {
             @Override
@@ -124,9 +130,28 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 }
             }
         };
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, new IntentFilter(INTENT_NEW_MESSAGES));
 
         Log.d(TAG, "onCreate()");
     }
+
+    PostService mService;
+    boolean mBound = false;
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName className,
+                                       IBinder service) {
+
+            PostService.LocalBinder binder = (PostService.LocalBinder) service;
+            mService = binder.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mBound = false;
+        }
+    };
 
     @Override
     protected void onStart() {
@@ -137,12 +162,15 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @Override
     protected void onResume() {
         super.onResume();
+        Intent intent = new Intent(this, PostService.class);
+        bindService(intent,mConnection, Context.BIND_AUTO_CREATE);
         Log.d(TAG, "onResume()");
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        unbindService(mConnection);
         Log.d(TAG, "onPause()");
     }
 
@@ -155,7 +183,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unregisterReceiver(broadcastReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver);
         Log.d(TAG, "onDestroy()");
     }
 
@@ -285,8 +313,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            PostService postService = new PostService();
-            mAuthTask = postService.new ImapTask(email, password, host, 10);
+            mAuthTask = mService.new ImapTask(email, password, host, 10);
             mAuthTask.execute((Void) null);
         }
     }
