@@ -79,21 +79,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         Fragment fragment = MessagesFragment.newInstance("INBOX");
-//        if (id == R.id.nav_inbox) {
-//            toolbar.setTitle("Inbox");
-//        } else if (id == R.id.nav_sent) {
-//            toolbar.setTitle("Sent");
-//        } else if (id == R.id.nav_trash) {
-//            toolbar.setTitle("Trash");
-//        } else if (id == R.id.nav_spam) {
-//            toolbar.setTitle("Spam");
-//        } else if (id == R.id.nav_draft) {
-//            toolbar.setTitle("Draft");
-//        } else if (id == R.id.nav_share) {
-//
-//        } else if (id == R.id.nav_send) {
-//
-//        }
+        if (id == R.id.nav_inbox) {
+            toolbar.setTitle("Inbox");
+        } else if (id == R.id.nav_logout) {
+            logout();
+        }
 
         // Insert the fragment by replacing any existing fragment
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -105,6 +95,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.closeDrawer(GravityCompat.START);
 
         return true;
+    }
+
+    private void logout() {
+        //todo db logout
+        User.getInstance().clear();
+        finish();
+        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+        startActivity(intent);
     }
 
 }

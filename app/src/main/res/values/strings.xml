@@ -10,6 +10,7 @@
     <string name="trash">Trash</string>
     <string name="spam">Spam</string>
     <string name="draft">Draft</string>
+    <string name="logout">Logout</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
