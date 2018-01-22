@@ -13,5 +13,8 @@ public class DataSourceLogin {
     static DataSourceLogin getInstance() {
         return dataSourceLogin;
     }
+    List<Login> getLogins() { return logins; }
+
+
 
 }
