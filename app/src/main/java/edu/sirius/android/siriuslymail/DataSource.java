@@ -2,36 +2,43 @@ package edu.sirius.android.siriuslymail;
 
 import android.content.Context;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DataSource {
-    private List<Message> messages = new ArrayList<>();
-    private final Map<Long, Message> idToMessage = new HashMap<>();
 
-    private static DataSource dataSource = new DataSource();
-    static DataSource getInstance() {
+    private final Context context;
+    private static DataSource dataSource;
+
+    public DataSource(Context context) {
+        this.context = context;
+    }
+
+    public static void init(Context context) {
+        dataSource = new DataSource(context);
+    }
+
+    public static DataSource getInstance() {
         return dataSource;
     }
 
-    Message getMessage(long id) {
-        return idToMessage.get(id);
+    public Message getMessage(long id) {
+        return DataBaseHelper.readOne(context, id);
     }
 
-    List<Message> getMessages() {
-        return messages;
+    public List<Message> getMessages(String folder) {
+        return DataBaseHelper.readFolder(context, folder);
     }
 
-    void updateFromDatabase(Context context, String folder) {
-        messages = DataBaseHelper.readFolder(context, folder);
-        idToMessage.clear();
-        for (Message m : messages)
-            idToMessage.put(m.id, m);
+    public void saveMessages(List<Message> messages) {
+        DataBaseHelper.insertMany(context, messages);
     }
 
-    int getCount() {
-        return messages.size();
+    public void clearMessages(String folder) {
+        // TODO
+//        DataBaseHelper.insertMany(context, messages);
+    }
+
+    public void dropDb() {
+        // TODO
     }
 }

@@ -8,10 +8,8 @@
     tools:context="edu.sirius.android.siriuslymail.MainActivity"
     tools:showIn="@layout/app_bar_main">
 
-    <fragment
-        android:id="@+id/fragment"
-        android:name="edu.sirius.android.siriuslymail.MessagesFragment"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:layout_weight="1" />
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </LinearLayout>

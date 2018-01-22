@@ -1,52 +1,33 @@
 package edu.sirius.android.siriuslymail;
 
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
-
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
-
-    final String TAG = "lifecycle_main";
-    MessagesFragment messagesFragment;
-
-    private BroadcastReceiver broadcastReceiver;
-
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     Toolbar toolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //TODO remove after testing
-        //Intent testIntent = new Intent(MainActivity.this, ReadActivity.class);
-        //startActivity(testIntent);
-
         toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitle("Inbox");
         setSupportActionBar(toolbar);
-
-        messagesFragment = (MessagesFragment) getFragmentManager().findFragmentById(R.id.fragment);
-
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment fragment = MessagesFragment.newInstance("INBOX");
+        fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
 
@@ -56,7 +37,6 @@ public class MainActivity extends AppCompatActivity
                 startActivity(intent);
             }
         });
-
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -64,71 +44,6 @@ public class MainActivity extends AppCompatActivity
         toggle.syncState();
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-
-
-        Log.d(TAG, "onCreate()");
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        Log.d(TAG, "onStart()");
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        broadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                if (intent.getAction().equals("NEW_MESSAGES")) {
-                    DataSource.getInstance().updateFromDatabase(context, "INBOX"); //TODO intent folder
-                    messagesFragment.refreshMessages();
-                }
-            }
-        };
-        Intent intent = new Intent(this, PostService.class);
-        bindService(intent,mConnection, Context.BIND_AUTO_CREATE);
-        Log.d(TAG, "onResume()");
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unbindService(mConnection);
-        Log.d(TAG, "onPause()");
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        Log.d(TAG, "onStop()");
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG, "onDestroy()");
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState) {
-        super.onSaveInstanceState(outState, outPersistentState);
-        Log.d(TAG, "onSaveInstanceState()");
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        Log.d(TAG, "onRestoreInstanceState()");
-    }
-
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        Log.d(TAG, "onRestart()");
     }
 
     @Override
@@ -143,19 +58,14 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }
@@ -168,47 +78,33 @@ public class MainActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+        Fragment fragment = MessagesFragment.newInstance("INBOX");
+//        if (id == R.id.nav_inbox) {
+//            toolbar.setTitle("Inbox");
+//        } else if (id == R.id.nav_sent) {
+//            toolbar.setTitle("Sent");
+//        } else if (id == R.id.nav_trash) {
+//            toolbar.setTitle("Trash");
+//        } else if (id == R.id.nav_spam) {
+//            toolbar.setTitle("Spam");
+//        } else if (id == R.id.nav_draft) {
+//            toolbar.setTitle("Draft");
+//        } else if (id == R.id.nav_share) {
+//
+//        } else if (id == R.id.nav_send) {
+//
+//        }
 
-        if (id == R.id.nav_inbox) {
-            toolbar.setTitle("Inbox");
-        } else if (id == R.id.nav_sent) {
-            toolbar.setTitle("Sent");
-        } else if (id == R.id.nav_trash) {
-            toolbar.setTitle("Trash");
-        } else if (id == R.id.nav_spam) {
-            toolbar.setTitle("Spam");
-        } else if (id == R.id.nav_draft) {
-            toolbar.setTitle("Draft");
-        } else if (id == R.id.nav_share) {
+        // Insert the fragment by replacing any existing fragment
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
 
-        } else if (id == R.id.nav_send) {
-
-        }
-
+        item.setChecked(true);
+//        setTitle(menuItem.getTitle());
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
 
         return true;
     }
-    PostService mService;
-    boolean mBound = false;
-    private ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName className,
-                                       IBinder service) {
-
-            PostService.LocalBinder binder = (PostService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-
-            mService.getPost("grafoffsergej@yandex.ru", "irjkf444", "imap.yandex.ru", "INBOX", 10);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName arg0) {
-            mBound = false;
-        }
-    };
 
 }

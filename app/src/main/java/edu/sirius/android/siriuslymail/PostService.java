@@ -1,68 +1,130 @@
 package edu.sirius.android.siriuslymail;
 
-import android.app.Service;
+import android.app.IntentService;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.os.Binder;
-import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
-import javax.mail.*;
+
+import javax.mail.Folder;
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Multipart;
+import javax.mail.Session;
+import javax.mail.Store;
+import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
-import javax.mail.Message;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import static edu.sirius.android.siriuslymail.IntentConstants.EMAIL;
+import static edu.sirius.android.siriuslymail.IntentConstants.FOLDER;
+import static edu.sirius.android.siriuslymail.IntentConstants.HOST;
+import static edu.sirius.android.siriuslymail.IntentConstants.PASSWORD;
+import static edu.sirius.android.siriuslymail.PostServiceActions.GET_MESSAGES_ACTION;
+import static edu.sirius.android.siriuslymail.PostServiceActions.LOGIN_ACTION;
 
-public class PostService extends Service {
-    private final ExecutorService pool = Executors.newFixedThreadPool(1);
+public class PostService extends IntentService {
 
-    public static final String INTENT_NEW_MESSAGES = "NEW_MESSAGES";
-    private String SUCCESS_LOGIN = "IS_SUCCESS";
+    public static final String SUCCESS_LOGIN = "IS_SUCCESS";
+    public static final String SUCCESS_LOAD_MESSAGES = "SUCCESS_LOAD_MESSAGES";
 
-    private final IBinder mBinder = new LocalBinder();
+
     public PostService() {
+        this(null);
     }
 
-    public void getPost(String email,String pass,String host,String folder,int quantityMessagesToDownload){
-        ImapTask task = new ImapTask(email, pass, host, quantityMessagesToDownload);
-        task.execute();
-    }
-
-    public void sendMessage(String emailFrom,String emailTo,String password,String host,String subject,String body){
-        SmtpTask task=new SmtpTask(emailFrom,password,emailTo,host,subject,body);
-        task.execute();
+    public PostService(String name) {
+        super(name);
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
-        return mBinder;
-    }
-
-
-    public class LocalBinder extends Binder {
-
-        PostService getService() {
-
-            return PostService.this;
+    protected void onHandleIntent(@Nullable Intent intent) {
+        switch (intent.getAction()) {
+            case GET_MESSAGES_ACTION:
+                loadMessages(intent);
+                break;
+            case LOGIN_ACTION:
+                loggin(intent);
+                break;
         }
     }
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        return START_STICKY;
+
+    private void loggin(Intent intent) {
+        Properties props = new Properties();
+        props.put("mail.store.protocol", "imaps");
+        Session session = Session.getInstance(props);
+
+        boolean isSuccess;
+        try {
+            Store store = session.getStore();
+            store.connect(intent.getStringExtra(HOST), intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD));
+            isSuccess = true;
+            User.getInstance().update(intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD), intent.getStringExtra(HOST));
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            isSuccess = false;
+        }
+        intent = new Intent(LOGIN_ACTION);
+        intent.putExtra(SUCCESS_LOGIN, isSuccess);
+        LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
     }
 
+    private void loadMessages(Intent intent) {
+        Properties props = new Properties();
+        props.put("mail.store.protocol", "imaps");
+        Session session = Session.getInstance(props);
+        Store store;
+        boolean isSuccess;
+        try {
+            store = session.getStore();
+            store.connect(User.getInstance().getHost(), User.getInstance().getEmail(), User.getInstance().getPassword());
+            Folder inbox = store.getFolder(intent.getStringExtra(FOLDER)); //TODO folder
+            inbox.open(Folder.READ_ONLY);
 
-    class SmtpTask extends AsyncTask<Void,Void,Boolean>{
-        SmtpTask(String emailFrom, String password, String emailTo, String host, String subject, String body){
+            List<edu.sirius.android.siriuslymail.Message> messages = new ArrayList<>();
+
+            Message[] msgs = inbox.getMessages();
+            int quantityAlreadyDownload = 0;
+
+
+            for (int msgsIndex = 10 - 1; msgsIndex >= 0; --msgsIndex) {
+                Message msg = msgs[msgsIndex];
+                edu.sirius.android.siriuslymail.Message m = new edu.sirius.android.siriuslymail.Message();
+                m.from = msg.getFrom()[0].toString();
+                m.to = msg.getAllRecipients()[0].toString();
+                m.subject = msg.getSubject();
+                m.body = msg.getContent().toString(); //TODO MultipartMIME
+                m.folder = intent.getStringExtra(FOLDER);
+
+                messages.add(m);
+//                    quantityAlreadyDownload++;
+//                    if (quantityAlreadyDownload == quantityMessagesToDownload)
+//                        break;
+
+            }
+
+            DataSource.getInstance().saveMessages(messages);
+            isSuccess = true;
+        } catch (MessagingException | IOException e) {
+            User.getInstance().clear();
+            e.printStackTrace();
+            isSuccess = false;
+        }
+        intent = new Intent(GET_MESSAGES_ACTION);
+        intent.putExtra(SUCCESS_LOAD_MESSAGES, isSuccess);
+        LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
+    }
+
+    class SmtpTask extends AsyncTask<Void, Void, Boolean> {
+        SmtpTask(String emailFrom, String password, String emailTo, String host, String subject, String body) {
             this.emailFrom = emailFrom;
             this.password = password;
             this.emailTo = emailTo;
@@ -71,23 +133,16 @@ public class PostService extends Service {
             this.body = body;
         }
 
-        private  final String emailFrom;
-        private  final String password;
+        private final String emailFrom;
+        private final String password;
         private final String emailTo;
         private final String host;
         private final String subject;
         private final String body;
 
         @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            super.onPostExecute(aBoolean);
-
-
-        }
-
-        @Override
         protected Boolean doInBackground(Void... voids) {
-            Properties props=new Properties();
+            Properties props = new Properties();
             props.put("mail.smtp.host", host);
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
@@ -128,8 +183,7 @@ public class PostService extends Service {
                 bus.close();
                 return true;
 
-            }
-            catch (MessagingException mex) {
+            } catch (MessagingException mex) {
                 // Печать информации обо всех возможных возникших исключениях
                 mex.printStackTrace();
                 // Получение вложенного исключения
@@ -138,86 +192,11 @@ public class PostService extends Service {
                     Exception ex = mex.getNextException();
                     ex.printStackTrace();
                     if (!(ex instanceof MessagingException)) break;
-                    else mex = (MessagingException)ex;
+                    else mex = (MessagingException) ex;
                 }
-                return  false;
+                return false;
             }
 
         }
     }
-
-    class ImapTask extends AsyncTask<Void,Void,Boolean> {
-        private final String email;
-        private final String password;
-        private final String host;
-        private int quantityMessagesToDownload;
-        @Override
-        protected Boolean doInBackground(Void... voids) {
-            Properties props = new Properties();
-            props.put("mail.store.protocol", "imaps");
-            Session session = Session.getInstance(props);
-            Store store= null;
-            try {
-                store = session.getStore();
-                store.connect(host,email,password);
-            } catch (MessagingException e) {
-                e.printStackTrace();
-                return false;
-            }
-            try {
-                Folder inbox= store.getFolder("INBOX"); //TODO folder
-                inbox.open(Folder.READ_ONLY);
-
-                ArrayList<edu.sirius.android.siriuslymail.Message> messages = new ArrayList<>();
-
-                Message[] msgs = inbox.getMessages();
-                int quantityAlreadyDownload=0;
-
-
-                for (int msgsIndex = msgs.length - 1; msgsIndex >= 0; --msgsIndex) {
-                    try{
-                        Message msg = msgs[msgsIndex];
-                        edu.sirius.android.siriuslymail.Message m = new edu.sirius.android.siriuslymail.Message();
-                        m.from = msg.getFrom()[0].toString();
-                        m.to = msg.getAllRecipients()[0].toString();
-                        m.subject = msg.getSubject();
-                        m.body = msg.getContent().toString(); //TODO MultipartMIME
-                        m.folder = "INBOX"; // TODO folder
-
-                        messages.add(m);
-                        quantityAlreadyDownload++;
-                        if (quantityAlreadyDownload == quantityMessagesToDownload)
-                            break;
-                    }catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                DataBaseHelper.insertMany(PostService.this, messages);
-
-            } catch (MessagingException e) {
-                e.printStackTrace();
-                return false;
-            }
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
-
-            Intent intent = new Intent(INTENT_NEW_MESSAGES);
-            intent.putExtra(SUCCESS_LOGIN, result);
-            LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
-
-        }
-
-        ImapTask(String email, String password, String host,int quantityMessagesToDownload){
-            this.email = email;
-            this.password = password;
-            this.host = host;
-            this.quantityMessagesToDownload=quantityMessagesToDownload;
-        }
-    }
-
 }
