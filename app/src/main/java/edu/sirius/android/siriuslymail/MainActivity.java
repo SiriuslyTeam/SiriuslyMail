@@ -16,6 +16,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     Toolbar toolbar;
 
@@ -26,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         FragmentManager fragmentManager = getSupportFragmentManager();
-        Fragment fragment = MessagesFragment.newInstance("INBOX");
+        Fragment fragment = MessagesFragment.newInstance(FoldersDataStore.getInstance().toString());
         fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -44,6 +46,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggle.syncState();
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        final Menu menu = navigationView.getMenu();
+        List<String> a = FoldersDataStore.getInstance().returnAllFoldersNames();
+        for (String i : a) {
+            menu.add(i);
+        }
     }
 
     @Override
@@ -66,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
+
         if (id == R.id.action_settings) {
             return true;
         }
@@ -78,10 +86,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-        Fragment fragment = MessagesFragment.newInstance("INBOX");
-        if (id == R.id.nav_inbox) {
-            toolbar.setTitle("Inbox");
-        } else if (id == R.id.nav_logout) {
+        Fragment fragment = MessagesFragment.newInstance(item.getTitle().toString());
+        if (id == R.id.nav_logout) {
             logout();
         }
 

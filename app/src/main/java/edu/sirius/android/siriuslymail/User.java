@@ -6,7 +6,6 @@ public class User {
     private String password;
     private String host;
     private static final User ourInstance = new User();
-
     public static User getInstance() {
         return ourInstance;
     }

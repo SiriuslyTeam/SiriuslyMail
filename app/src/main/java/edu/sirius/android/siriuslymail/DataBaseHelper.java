@@ -84,8 +84,7 @@ class DataBaseHelper extends SQLiteOpenHelper {
 
     static void insertMany(Context context, List<Message> messages) {
         SQLiteDatabase database = getInstance(context).getWritableDatabase();
-
-
+        
         for (Message msg : messages) {
             ContentValues values = new ContentValues();
             values.put("FromUser", msg.from);

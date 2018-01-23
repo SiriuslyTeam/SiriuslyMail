@@ -37,8 +37,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Properties;
 
 import javax.mail.Folder;
@@ -104,6 +108,9 @@ public class PostService extends IntentService {
             store.connect(intent.getStringExtra(HOST), intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD));
             isSuccess = true;
             User.getInstance().update(intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD), intent.getStringExtra(HOST));
+            javax.mail.Folder[] folders1 = store.getDefaultFolder().list("*");
+            FoldersDataStore.getInstance().setFolders(Arrays.asList(folders1));
+
         } catch (MessagingException e) {
             e.printStackTrace();
             isSuccess = false;
