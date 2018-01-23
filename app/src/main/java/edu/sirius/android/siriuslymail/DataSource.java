@@ -35,10 +35,11 @@ public class DataSource {
 
     public void clearMessages(String folder) {
         // TODO
-//        DataBaseHelper.insertMany(context, messages);
+        DataBaseHelper.clearMessages(context,folder);
     }
 
     public void dropDb() {
         // TODO
     }
+
 }
