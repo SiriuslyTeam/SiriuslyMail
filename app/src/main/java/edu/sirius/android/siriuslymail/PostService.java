@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Properties;
 
+import javax.mail.BodyPart;
 import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -26,8 +27,9 @@ import javax.mail.internet.MimeMultipart;
 
 import static edu.sirius.android.siriuslymail.IntentConstants.EMAIL;
 import static edu.sirius.android.siriuslymail.IntentConstants.FOLDER;
-import static edu.sirius.android.siriuslymail.IntentConstants.HOST;
+import static edu.sirius.android.siriuslymail.IntentConstants.IMAP_HOST;
 import static edu.sirius.android.siriuslymail.IntentConstants.PASSWORD;
+import static edu.sirius.android.siriuslymail.IntentConstants.SMTP_HOST;
 import static edu.sirius.android.siriuslymail.PostServiceActions.GET_MESSAGES_ACTION;
 import static edu.sirius.android.siriuslymail.PostServiceActions.LOGIN_ACTION;
 
@@ -52,12 +54,12 @@ public class PostService extends IntentService {
                 loadMessages(intent);
                 break;
             case LOGIN_ACTION:
-                loggin(intent);
+                login(intent);
                 break;
         }
     }
 
-    private void loggin(Intent intent) {
+    private void login(Intent intent) {
         Properties props = new Properties();
         props.put("mail.store.protocol", "imaps");
         Session session = Session.getInstance(props);
@@ -65,9 +67,9 @@ public class PostService extends IntentService {
         boolean isSuccess;
         try {
             Store store = session.getStore();
-            store.connect(intent.getStringExtra(HOST), intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD));
+            store.connect(intent.getStringExtra(IMAP_HOST), intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD));
             isSuccess = true;
-            User.getInstance().update(intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD), intent.getStringExtra(HOST));
+            User.getInstance().update(intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD), intent.getStringExtra(IMAP_HOST), intent.getStringExtra(SMTP_HOST));
         } catch (MessagingException e) {
             e.printStackTrace();
             isSuccess = false;
@@ -85,23 +87,22 @@ public class PostService extends IntentService {
         boolean isSuccess;
         try {
             store = session.getStore();
-            store.connect(User.getInstance().getHost(), User.getInstance().getEmail(), User.getInstance().getPassword());
+            store.connect(User.getInstance().getImapHost(), User.getInstance().getEmail(), User.getInstance().getPassword());
             Folder inbox = store.getFolder(intent.getStringExtra(FOLDER)); //TODO folder
             inbox.open(Folder.READ_ONLY);
 
             List<edu.sirius.android.siriuslymail.Message> messages = new ArrayList<>();
 
             Message[] msgs = inbox.getMessages();
-            int quantityAlreadyDownload = 0;
+            int quantityMessages = inbox.getMessageCount();
 
-
-            for (int msgsIndex = 10 - 1; msgsIndex >= 0; --msgsIndex) {
+            for (int msgsIndex = quantityMessages - 1; msgsIndex >= quantityMessages - 10; --msgsIndex) {
                 Message msg = msgs[msgsIndex];
                 edu.sirius.android.siriuslymail.Message m = new edu.sirius.android.siriuslymail.Message();
                 m.from = msg.getFrom()[0].toString();
                 m.to = msg.getAllRecipients()[0].toString();
                 m.subject = msg.getSubject();
-                m.body = msg.getContent().toString(); //TODO MultipartMIME
+                m.body = getTextFromMessage(msg); //TODO MultipartMIME
                 m.folder = intent.getStringExtra(FOLDER);
 
                 messages.add(m);
@@ -110,7 +111,7 @@ public class PostService extends IntentService {
 //                        break;
 
             }
-
+            DataSource.getInstance().clearMessages(intent.getStringExtra(FOLDER));
             DataSource.getInstance().saveMessages(messages);
             isSuccess = true;
         } catch (MessagingException | IOException e) {
@@ -121,6 +122,35 @@ public class PostService extends IntentService {
         intent = new Intent(GET_MESSAGES_ACTION);
         intent.putExtra(SUCCESS_LOAD_MESSAGES, isSuccess);
         LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
+    }
+
+    private String getTextFromMessage(Message message) throws MessagingException, IOException {
+        String result = "";
+        if (message.isMimeType("multipart/*")) {
+            MimeMultipart mimeMultipart = (MimeMultipart) message.getContent();
+            result = getTextFromMimeMultipart(mimeMultipart);
+        } else {
+            result = message.getContent().toString();
+        }
+        return result;
+    }
+
+    private String getTextFromMimeMultipart(
+            MimeMultipart mimeMultipart)  throws MessagingException, IOException{
+        String result = "";
+        int count = mimeMultipart.getCount();
+        for (int i = 0; i < count; i++) {
+            BodyPart bodyPart = mimeMultipart.getBodyPart(i);
+            if (bodyPart.isMimeType("text/plain")) {
+                result = result + "\n" + bodyPart.getContent();
+                break; // without break same text appears twice in my tests
+            } else if (bodyPart.isMimeType("text/html")) {
+                result = (String) bodyPart.getContent();
+            } else if (bodyPart.getContent() instanceof MimeMultipart){
+                result = result + getTextFromMimeMultipart((MimeMultipart)bodyPart.getContent());
+            }
+        }
+        return result;
     }
 
     class SmtpTask extends AsyncTask<Void, Void, Boolean> {

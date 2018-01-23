@@ -68,10 +68,24 @@
                 android:layout_height="wrap_content">
 
                 <EditText
-                    android:id="@+id/host"
+                    android:id="@+id/imap_host"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/prompt_host"
+                    android:hint="@string/prompt_imap_host"
+                    android:maxLines="1"
+                    android:singleLine="true" />
+
+            </android.support.design.widget.TextInputLayout>
+
+            <android.support.design.widget.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:id="@+id/smtp_host"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/prompt_smtp_host"
                     android:maxLines="1"
                     android:singleLine="true" />
 

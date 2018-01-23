@@ -1,5 +1,6 @@
 package edu.sirius.android.siriuslymail;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -19,6 +20,10 @@ import android.view.View;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     Toolbar toolbar;
 
+    public static void start(Activity activity) {
+        Intent intentToMain = new Intent(activity, MainActivity.class);
+        activity.startActivity(intentToMain);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

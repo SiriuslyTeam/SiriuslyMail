@@ -14,22 +14,30 @@
         android:id="@+id/from"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="25sp"
-        android:text="@string/from_read" />
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/to"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="25sp"
-        android:text="@string/to_read" />
+        android:textSize="15sp" />
 
     <TextView
-        android:id="@+id/topic"
+        android:id="@+id/copy"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="25sp"
-        android:text="here would be topic" />
+        android:textSize="15sp" />
+
+    <TextView
+        android:id="@+id/subject"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="15sp" />
+
+    <!--<TextView-->
+        <!--android:id="@+id/read_full"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent" />-->
 
     <WebView
         android:id="@+id/read_full"
