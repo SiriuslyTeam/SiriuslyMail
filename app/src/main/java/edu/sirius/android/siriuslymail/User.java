@@ -1,6 +1,8 @@
 package edu.sirius.android.siriuslymail;
 
 
+import static android.provider.SyncStateContract.Helpers.update;
+
 public class User {
     private String email;
     private String password;
@@ -61,6 +63,6 @@ public class User {
     }
 
     public void clear() {
-        update(null, null, null);
+        DataBaseHelperLogin.dropdb();
     }
 }
