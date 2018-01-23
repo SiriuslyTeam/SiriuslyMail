@@ -193,14 +193,14 @@ public class PostService extends IntentService {
     private void postMessage(Intent intent) {
             edu.sirius.android.siriuslymail.Message message = (edu.sirius.android.siriuslymail.Message) intent.getSerializableExtra("POST_MESSAGE");
             Properties props = new Properties();
-            String host=User.getInstance().getHost();
+            String host=User.getInstance().getImapHost();
             String emailTo = message.to;
             String body = message.body;
             String subject = message.subject;
             String emailFrom = User.getInstance().getEmail();
             String password =User.getInstance().getPassword();
 
-            props.put("mail.smtp.host", User.getInstance().getHost());
+            props.put("mail.smtp.host", User.getInstance().getImapHost());
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
 

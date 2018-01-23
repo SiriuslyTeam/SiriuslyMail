@@ -11,6 +11,7 @@
     <string name="spam">Spam</string>
     <string name="draft">Draft</string>
     <string name="logout">Logout</string>
+    <string name="change_account">Change account</string>
 
     <!-- Strings related to login -->
     <string name="prompt_email">Email</string>
