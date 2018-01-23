@@ -25,6 +25,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.UserHandle;
+import android.os.UserManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -103,7 +104,7 @@ public class PostService extends IntentService {
             Store store = session.getStore();
             store.connect(intent.getStringExtra(HOST), intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD));
             isSuccess = true;
-            User.getInstance().update(intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD), intent.getStringExtra(HOST));
+            UsersManager.getInstance().saveUser(new User(intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD), intent.getStringExtra(HOST), (long) 1));
         } catch (MessagingException e) {
             e.printStackTrace();
             isSuccess = false;
@@ -121,7 +122,8 @@ public class PostService extends IntentService {
         boolean isSuccess;
         try {
             store = session.getStore();
-            store.connect(User.getInstance().getHost(), User.getInstance().getEmail(), User.getInstance().getPassword());
+            User user = UsersManager.getInstance().getActiveUser();
+            store.connect(user.getHost(), user.getEmail(), user.getPassword());
             Folder inbox = store.getFolder(intent.getStringExtra(FOLDER)); //TODO folder
             inbox.open(Folder.READ_ONLY);
 
@@ -150,7 +152,6 @@ public class PostService extends IntentService {
             DataSource.getInstance().saveMessages(messages);
             isSuccess = true;
         } catch (MessagingException | IOException e) {
-            User.getInstance().clear();
             e.printStackTrace();
             isSuccess = false;
         }
@@ -162,14 +163,15 @@ public class PostService extends IntentService {
   private void postMessage(Intent intent) {
             edu.sirius.android.siriuslymail.Message message = (edu.sirius.android.siriuslymail.Message) intent.getSerializableExtra("POST_MESSAGE");
             Properties props = new Properties();
-            String host=User.getInstance().getHost();
+            User user=UsersManager.getInstance().getActiveUser();
+            String host=user.getHost();
             String emailTo = message.to;
             String body = message.body;
             String subject = message.subject;
-            String emailFrom = User.getInstance().getEmail();
-            String password =User.getInstance().getPassword();
+            String emailFrom = user.getEmail();
+            String password =user.getPassword();
 
-            props.put("mail.smtp.host", User.getInstance().getHost());
+            props.put("mail.smtp.host", user.getHost());
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
 

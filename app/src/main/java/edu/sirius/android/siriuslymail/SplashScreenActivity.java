@@ -2,8 +2,6 @@ package edu.sirius.android.siriuslymail;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.content.Intent;
-import android.os.Handler;
 
 public class SplashScreenActivity extends Activity {
 
@@ -14,8 +12,13 @@ public class SplashScreenActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_screen);
+        User user = UsersManager.getInstance().getActiveUser();
         //TODO elsi pusto to login else main
-
-        User.getInstance().update();
+        if (user == null) {
+            LoginActivity.start(this);
+        } else {
+            MainActivity.start(this);
+        }
+        finish();
     }
 }

@@ -3,6 +3,7 @@ package edu.sirius.android.siriuslymail;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -190,6 +191,10 @@ public class LoginActivity extends AppCompatActivity {
                 mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         });
+    }
+
+    public static void start(Activity activity) {
+        activity.startActivity(new Intent(activity, LoginActivity.class));
     }
 }
 

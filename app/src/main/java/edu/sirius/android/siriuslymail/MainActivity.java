@@ -1,7 +1,9 @@
 package edu.sirius.android.siriuslymail;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.UserManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -99,10 +101,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void logout() {
         //todo db logout
-        User.getInstance().clear();
+        UsersManager.getInstance().clear();
         finish();
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
     }
 
+    public static void start(Activity activity) {
+        activity.startActivity(new Intent(activity, MainActivity.class));
+    }
 }
