@@ -1,12 +1,41 @@
 package edu.sirius.android.siriuslymail;
 
 import android.app.IntentService;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.IntentSender;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
+import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.database.DatabaseErrorHandler;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.UserHandle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
+import android.view.Display;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -32,11 +61,14 @@ import static edu.sirius.android.siriuslymail.IntentConstants.PASSWORD;
 import static edu.sirius.android.siriuslymail.IntentConstants.SMTP_HOST;
 import static edu.sirius.android.siriuslymail.PostServiceActions.GET_MESSAGES_ACTION;
 import static edu.sirius.android.siriuslymail.PostServiceActions.LOGIN_ACTION;
+import static edu.sirius.android.siriuslymail.PostServiceActions.POST_MESSAGE;
+import static edu.sirius.android.siriuslymail.PostServiceActions.RETURN_RESULT;
 
 public class PostService extends IntentService {
 
     public static final String SUCCESS_LOGIN = "IS_SUCCESS";
     public static final String SUCCESS_LOAD_MESSAGES = "SUCCESS_LOAD_MESSAGES";
+    public static final String SUCCESS_SEND = "SUCCESS_SEND";
 
 
     public PostService() {
@@ -56,6 +88,10 @@ public class PostService extends IntentService {
             case LOGIN_ACTION:
                 login(intent);
                 break;
+            case POST_MESSAGE:
+                postMessage(intent);
+                break;
+
         }
     }
 
@@ -153,32 +189,23 @@ public class PostService extends IntentService {
         return result;
     }
 
-    class SmtpTask extends AsyncTask<Void, Void, Boolean> {
-        SmtpTask(String emailFrom, String password, String emailTo, String host, String subject, String body) {
-            this.emailFrom = emailFrom;
-            this.password = password;
-            this.emailTo = emailTo;
-            this.host = host;
-            this.subject = subject;
-            this.body = body;
-        }
 
-        private final String emailFrom;
-        private final String password;
-        private final String emailTo;
-        private final String host;
-        private final String subject;
-        private final String body;
-
-        @Override
-        protected Boolean doInBackground(Void... voids) {
+    private void postMessage(Intent intent) {
+            edu.sirius.android.siriuslymail.Message message = (edu.sirius.android.siriuslymail.Message) intent.getSerializableExtra("POST_MESSAGE");
             Properties props = new Properties();
-            props.put("mail.smtp.host", host);
+            String host=User.getInstance().getHost();
+            String emailTo = message.to;
+            String body = message.body;
+            String subject = message.subject;
+            String emailFrom = User.getInstance().getEmail();
+            String password =User.getInstance().getPassword();
+
+            props.put("mail.smtp.host", User.getInstance().getHost());
             props.put("mail.smtp.auth", "true");
             props.put("mail.smtp.starttls.enable", "true");
 
             Session session = Session.getInstance(props);
-
+            boolean bool;
             try {
                 // Получение объекта транспорта для передачи электронного сообщения
                 Transport bus = session.getTransport("smtp");
@@ -211,22 +238,19 @@ public class PostService extends IntentService {
                 bus.sendMessage(msg, address);
 
                 bus.close();
-                return true;
+                bool = true;
+
 
             } catch (MessagingException mex) {
                 // Печать информации обо всех возможных возникших исключениях
                 mex.printStackTrace();
                 // Получение вложенного исключения
-                while (mex.getNextException() != null) {
-                    // Получение следующего исключения в цепочке
-                    Exception ex = mex.getNextException();
-                    ex.printStackTrace();
-                    if (!(ex instanceof MessagingException)) break;
-                    else mex = (MessagingException) ex;
-                }
-                return false;
-            }
+                bool = false;
 
-        }
-    }
+            }
+      Intent intent1=new Intent(PostService.this, PostServiceActions.class)
+                .setAction(POST_MESSAGE)
+                .putExtra("IS_SUCCESS", bool);
+      LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent1);
+  }
 }
