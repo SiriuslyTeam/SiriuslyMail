@@ -4,13 +4,12 @@ package edu.sirius.android.siriuslymail;
 public class User {
     private String email;
     private String password;
-    private String host;
-    private static final User ourInstance = new User();
-    public static User getInstance() {
-        return ourInstance;
-    }
+    private String imapHost;
+    private String smtpHost;
+    private Long active;
 
-    private User() {
+
+    User() {
     }
 
     public String getEmail() {
@@ -29,22 +28,36 @@ public class User {
         this.password = password;
     }
 
-    public String getHost() {
-        return host;
+    public String getSmtpHost() {
+        return smtpHost;
     }
 
-    public void setHost(String host) {
-        this.host = host;
+    public void setSmtpHost(String smtpHost) {
+        this.smtpHost = smtpHost;
     }
 
-    public static User getOurInstance() {
-        return ourInstance;
+    public String getImapHost() {
+        return imapHost;
     }
 
-    public void update(String email, String password, String host) {
+    public void setImapHost(String imapHost) {
+        this.imapHost = imapHost;
+    }
+
+    public Long getActive() {
+        return active;
+    }
+
+    public void setActive(Long active) {
+        this.active = active;
+    }
+
+    public User(String email, String password, String imapHost, String smtpHost, long active) {
         this.email = email;
         this.password = password;
-        this.host = host;
+        this.imapHost = imapHost;
+        this.smtpHost = smtpHost;
+        this.active = active;
     }
 
     public void clear() {

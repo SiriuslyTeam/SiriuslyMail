@@ -101,4 +101,8 @@ class DataBaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase database = getInstance(context).getWritableDatabase();
         database.delete("Message", "id =" + id, null);
     }
+
+    public static void clearMessages(Context context,String folder) {
+        getInstance(context).getWritableDatabase().delete("Message", "Folder=?", new String[] {folder});
+    }
 }

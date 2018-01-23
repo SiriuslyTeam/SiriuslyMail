@@ -7,8 +7,9 @@ import android.content.Intent;
 
 import static edu.sirius.android.siriuslymail.IntentConstants.EMAIL;
 import static edu.sirius.android.siriuslymail.IntentConstants.FOLDER;
-import static edu.sirius.android.siriuslymail.IntentConstants.HOST;
+import static edu.sirius.android.siriuslymail.IntentConstants.IMAP_HOST;
 import static edu.sirius.android.siriuslymail.IntentConstants.PASSWORD;
+import static edu.sirius.android.siriuslymail.IntentConstants.SMTP_HOST;
 
 public class PostServiceActions {
     public static final String GET_MESSAGES_ACTION = "GET_MESSAGES_ACTION";
@@ -20,10 +21,11 @@ public class PostServiceActions {
         // no instance
     }
 
-    public static void attemptLogin(Context context, String email, String password, String host) {
+    public static void attemptLogin(Context context, String email, String password, String imapHost, String smtpHost) {
         Intent intent = new Intent(context, PostService.class)
                 .setAction(LOGIN_ACTION)
-                .putExtra(HOST, host)
+                .putExtra(IMAP_HOST, imapHost)
+                .putExtra(SMTP_HOST, smtpHost)
                 .putExtra(PASSWORD, password)
                 .putExtra(EMAIL, email);
         context.startService(intent);

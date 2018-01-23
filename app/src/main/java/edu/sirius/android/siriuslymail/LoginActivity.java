@@ -3,6 +3,7 @@ package edu.sirius.android.siriuslymail;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -38,8 +39,7 @@ public class LoginActivity extends AppCompatActivity {
             boolean success = intent.getExtras().getBoolean(SUCCESS_LOGIN);
             if (success) {
                 finish();
-                Intent intentToMain = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(intentToMain);
+                MainActivity.start(LoginActivity.this);
             } else {
                 showProgress(false);
                 Toast toast = Toast.makeText(getApplicationContext(), "Email, password or host is incorrect", Toast.LENGTH_LONG);
@@ -48,9 +48,12 @@ public class LoginActivity extends AppCompatActivity {
         }
     };
 
+
+
     private EditText mEmailView;
     private EditText mPasswordView;
-    private EditText mHostView;
+    private EditText mImapHostView;
+    private EditText mSmtpHostView;
     private View mProgressView;
     private View mLoginFormView;
 
@@ -71,10 +74,12 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        mHostView = findViewById(R.id.host);
-        mHostView.setText("");
+        mImapHostView = findViewById(R.id.imap_host);
+        mSmtpHostView = findViewById(R.id.smtp_host);
+        mImapHostView.setText("imap.yandex.ru");
+        mSmtpHostView.setText("smtp.yandex.ru");
         mPasswordView.setText("");
-        mEmailView.setText("");
+        mEmailView.setText("antonyud2000@yandex.ru");
         Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -100,11 +105,14 @@ public class LoginActivity extends AppCompatActivity {
 
         mEmailView.setError(null);
         mPasswordView.setError(null);
-        mHostView.setError(null);
+        mImapHostView.setError(null);
+        mSmtpHostView.setError(null);
 
         String email = mEmailView.getText().toString();
         String password = mPasswordView.getText().toString();
-        String host = mHostView.getText().toString();
+        String imapHost = mImapHostView.getText().toString();
+        String smtpHost = mSmtpHostView.getText().toString();
+
 
         boolean cancel = false;
         View focusView = null;
@@ -131,14 +139,25 @@ public class LoginActivity extends AppCompatActivity {
             cancel = true;
         }
 
-        // Check for a valid host
-        if (TextUtils.isEmpty(host)) {
-            mHostView.setError(getString(R.string.error_field_required));
-            focusView = mHostView;
+        // Check for a valid IMAP host
+        if (TextUtils.isEmpty(imapHost)) {
+            mImapHostView.setError(getString(R.string.error_field_required));
+            focusView = mImapHostView;
             cancel = true;
-        } else if (!isHostValid(host)) {
-            mHostView.setError(getString(R.string.error_invalid_host));
-            focusView = mHostView;
+        } else if (!isHostValid(imapHost)) {
+            mImapHostView.setError(getString(R.string.error_invalid_host));
+            focusView = mImapHostView;
+            cancel = true;
+        }
+
+        // Check for a valid SMTP host
+        if (TextUtils.isEmpty(smtpHost)) {
+            mSmtpHostView.setError(getString(R.string.error_field_required));
+            focusView = mSmtpHostView;
+            cancel = true;
+        } else if (!isHostValid(smtpHost)) {
+            mSmtpHostView.setError(getString(R.string.error_invalid_host));
+            focusView = mSmtpHostView;
             cancel = true;
         }
 
@@ -150,7 +169,7 @@ public class LoginActivity extends AppCompatActivity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            PostServiceActions.attemptLogin(this, email, password, host);
+            PostServiceActions.attemptLogin(this, email, password, imapHost, smtpHost);
         }
     }
 
@@ -190,6 +209,10 @@ public class LoginActivity extends AppCompatActivity {
                 mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             }
         });
+    }
+
+    public static void start(Activity activity) {
+        activity.startActivity(new Intent(activity, LoginActivity.class));
     }
 }
 

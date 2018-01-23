@@ -1,7 +1,14 @@
 package edu.sirius.android.siriuslymail;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.UserManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -16,10 +23,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import java.util.Objects;
+
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     Toolbar toolbar;
+    AlertDialog.Builder alertDialog;
+    Context context;
+
+    private final int IDD_CHANGE_ACCOUNT = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,7 +86,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-
         if (id == R.id.action_settings) {
             return true;
         }
@@ -87,7 +99,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         Fragment fragment = MessagesFragment.newInstance(item.getTitle().toString());
-        if (id == R.id.nav_logout) {
+        if (id == R.id.nav_inbox) {
+            toolbar.setTitle("Inbox");
+        } else if (id == R.id.nav_change) {
+            showDialog(IDD_CHANGE_ACCOUNT);
+        } else if (id == R.id.nav_logout) {
             logout();
         }
 
@@ -105,10 +121,67 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void logout() {
         //todo db logout
-        User.getInstance().clear();
+        UsersManager.getInstance().clear();
         finish();
         Intent intent = new Intent(MainActivity.this, LoginActivity.class);
         startActivity(intent);
     }
 
+    @Override
+    protected Dialog onCreateDialog(int id) {
+        switch (id) {
+            case IDD_CHANGE_ACCOUNT:
+                final String[] mAccounts ={UsersManager.getInstance().getActiveUser().getEmail(), "Add another account"};
+                int idAccountNow = 0;
+                for (int i = 0; i < mAccounts.length; ++i) {
+                    if (Objects.equals(mAccounts[i], UsersManager.getInstance().getActiveUser().getEmail())) {
+                        idAccountNow = i;
+                    }
+                }
+                final int[] idChosen = new int[1];
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                final int finalIdAccountNow = idAccountNow;
+                builder.setTitle("Select account")
+                        .setCancelable(false)
+                        .setPositiveButton("OK",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        if (idChosen[0] == mAccounts.length - 1) {
+                                            finish();
+                                            Intent intent = new Intent(MainActivity.this, LoginActivity.class);
+                                            startActivity(intent);
+                                        } else if (idChosen[0] != finalIdAccountNow) {
+                                            //TODO add all information about new account
+                                            finish();
+                                            Intent intent = new Intent(MainActivity.this, MainActivity.class);
+                                            startActivity(intent);
+                                        }
+                                        dialog.cancel();
+                                    }
+                                })
+                        .setNeutralButton("Cancel",
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int id) {
+                                        dialog.cancel();
+                                    }
+                                })
+                        .setSingleChoiceItems(mAccounts, -1,
+                                new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int item) {
+                                        idChosen[0] = item;
+                                    }
+                                });
+                builder.setCancelable(false);
+                return builder.create();
+            default:
+                return null;
+        }
+    }
+
+    public static void start(Activity activity) {
+        activity.startActivity(new Intent(activity, MainActivity.class));
+    }
 }

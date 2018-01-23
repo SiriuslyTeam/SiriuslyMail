@@ -22,10 +22,4 @@
         android:textStyle="bold"
         android:textColor="#000"
         android:text="topic" />
-
-    <TextView
-        android:id="@+id/item_full_message"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="message_text" />
 </LinearLayout>

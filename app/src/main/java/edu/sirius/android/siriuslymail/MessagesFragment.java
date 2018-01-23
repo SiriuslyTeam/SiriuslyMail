@@ -1,10 +1,14 @@
 package edu.sirius.android.siriuslymail;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -31,11 +35,13 @@ public class MessagesFragment extends Fragment {
     RecyclerView messagesRecyclerView;
     private String folderName;
     MessagesAdapter messagesAdapter;
+    View mProgressView;
 
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             boolean success = intent.getExtras().getBoolean(SUCCESS_LOAD_MESSAGES);
+            showProgress(false);
             if (success) {
                 List<Message> messages = DataSource.getInstance().getMessages(folderName);
                 messagesAdapter.setMessages(messages);
@@ -62,9 +68,13 @@ public class MessagesFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.recycler_layout, container, false);
         folderName = getArguments().getString(EXTRA_FOLDER_NAME);
         messagesRecyclerView = rootView.findViewById(R.id.messages_recyclerview);
+        mProgressView = rootView.findViewById(R.id.login_progress);
         messagesAdapter = new MessagesAdapter(getActivity());
         PostServiceActions.getMessages(getActivity(), folderName);
         messagesRecyclerView.setAdapter(messagesAdapter);
+        List<Message> messages = DataSource.getInstance().getMessages(folderName);
+        messagesAdapter.setMessages(messages);
+        showProgress(messages.isEmpty());
         messagesRecyclerView.setLayoutManager(new LinearLayoutManager(rootView.getContext()));
         return rootView;
     }
@@ -88,7 +98,6 @@ public class MessagesFragment extends Fragment {
         final LinearLayout linearLayout;
         private final TextView textItemFrom;
         private final TextView textItemTopic;
-        private final TextView textItemFullMessage;
 
         MessageViewHolder(final View messageView) {
             super(messageView);
@@ -96,14 +105,13 @@ public class MessagesFragment extends Fragment {
             this.linearLayout = messageView.findViewById(R.id.item_linear_layout);
             this.textItemFrom = messageView.findViewById(R.id.item_from);
             this.textItemTopic = messageView.findViewById(R.id.item_topic);
-            this.textItemFullMessage = messageView.findViewById(R.id.item_full_message);
+
         }
 
         void bind(Message message) {
             id = message.id;
             textItemFrom.setText(message.from);
             textItemTopic.setText(message.subject);
-            textItemFullMessage.setText(message.body);
         }
     }
 
@@ -128,15 +136,12 @@ public class MessagesFragment extends Fragment {
         }
 
         @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
             final MessageViewHolder messageViewHolder = (MessageViewHolder) holder;
             messageViewHolder.linearLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(v.getContext(), ReadActivity.class);
-
-                    intent.putExtra(EXTRA_ID, messageViewHolder.id);
-                    activity.startActivity(intent);
+                    ReadActivity.start(activity, messages.get(position));
                 }
             });
 
@@ -148,5 +153,30 @@ public class MessagesFragment extends Fragment {
         public int getItemCount() {
             return messages.size();
         }
+    }
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+        messagesRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
+        messagesRecyclerView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                messagesRecyclerView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
     }
 }
