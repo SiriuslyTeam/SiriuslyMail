@@ -27,7 +27,8 @@ public class DataBaseHelperLogin extends SQLiteOpenHelper {
                 "(Email TEXT," +
                 "Password TEXT,"+
                 "Active INTEGER,"+
-                "Host TEXT);");
+                "SmptHosr TEXT,"+
+                "ImapHost TEXT);");
     }
 
     @Override
@@ -47,7 +48,8 @@ public class DataBaseHelperLogin extends SQLiteOpenHelper {
         user.setEmail(cursorId.getString(0));
         user.setPassword(cursorId.getString(1));
         user.setActive(cursorId.getLong(2));
-        user.setHost(cursorId.getString(3));
+        user.setSmtpHost(cursorId.getString(3));
+        user.setImapHost(cursorId.getString(4));
 
         //DataSource.readData(cursor); TODO
         cursorId.close();
@@ -59,8 +61,10 @@ public class DataBaseHelperLogin extends SQLiteOpenHelper {
             ContentValues values=new ContentValues();
             values.put("Email",user.getEmail());
             values.put("Password",user.getPassword());
-            values.put("Host",user.getHost());
             values.put("Active",user.getActive());
+            values.put("ImapHost",user.getImapHost());
+            values.put("SmptHost",user.getSmtpHost());
+
 
             database.insert("Login",null,values);
     }
