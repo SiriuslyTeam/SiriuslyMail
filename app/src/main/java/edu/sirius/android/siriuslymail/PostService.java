@@ -132,7 +132,7 @@ public class PostService extends IntentService {
             Message[] msgs = inbox.getMessages();
             int quantityMessages = inbox.getMessageCount();
 
-            for (int msgsIndex = quantityMessages - 1; msgsIndex >= quantityMessages - 10; --msgsIndex) {
+            for (int msgsIndex = quantityMessages - 1; msgsIndex >= Math.max(quantityMessages - 10, 0); --msgsIndex) {
                 Message msg = msgs[msgsIndex];
                 edu.sirius.android.siriuslymail.Message m = new edu.sirius.android.siriuslymail.Message();
                 m.from = msg.getFrom()[0].toString();
