@@ -144,7 +144,9 @@ public class PostService extends IntentService {
                 Message msg = msgs[msgsIndex];
                 edu.sirius.android.siriuslymail.Message m = new edu.sirius.android.siriuslymail.Message();
                 m.from = msg.getFrom()[0].toString();
-                m.to = msg.getAllRecipients()[0].toString();
+                if (msg.getAllRecipients() != null) {
+                    m.to = msg.getAllRecipients()[0].toString();
+                }
                 m.subject = msg.getSubject();
                 m.body = getTextFromMessage(msg); //TODO MultipartMIME
                 m.folder = intent.getStringExtra(FOLDER);

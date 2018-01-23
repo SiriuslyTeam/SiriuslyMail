@@ -7,5 +7,6 @@ public class MailApplication extends Application {
     public void onCreate() {
         super.onCreate();
         DataSource.init(this);
+        UsersManager.initLogin(this);
     }
 }

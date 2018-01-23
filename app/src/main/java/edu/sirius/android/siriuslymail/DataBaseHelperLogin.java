@@ -27,7 +27,7 @@ public class DataBaseHelperLogin extends SQLiteOpenHelper {
                 "(Email TEXT," +
                 "Password TEXT,"+
                 "Active INTEGER,"+
-                "SmptHosr TEXT,"+
+                "SmtpHost TEXT,"+
                 "ImapHost TEXT);");
     }
 
@@ -39,11 +39,12 @@ public class DataBaseHelperLogin extends SQLiteOpenHelper {
 
     static User getActive(Context context) {
         SQLiteDatabase database = getInstance(context).getReadableDatabase();
-        Cursor cursorId = database.rawQuery("SELECT * FROM  Message WHERE Active=?", new String[]{String.valueOf(1)});
+        Cursor cursorId = database.rawQuery("SELECT * FROM  Login WHERE Active=?", new String[]{String.valueOf(1)});
         if (cursorId.getCount() == 0) {
             cursorId.close();
             return null;
         }
+        cursorId.moveToNext();
         User user= new User();
         user.setEmail(cursorId.getString(0));
         user.setPassword(cursorId.getString(1));
@@ -63,7 +64,7 @@ public class DataBaseHelperLogin extends SQLiteOpenHelper {
             values.put("Password",user.getPassword());
             values.put("Active",user.getActive());
             values.put("ImapHost",user.getImapHost());
-            values.put("SmptHost",user.getSmtpHost());
+            values.put("SmtpHost",user.getSmtpHost());
 
 
             database.insert("Login",null,values);

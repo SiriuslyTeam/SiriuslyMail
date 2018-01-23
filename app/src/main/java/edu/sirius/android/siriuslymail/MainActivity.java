@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         FragmentManager fragmentManager = getSupportFragmentManager();
-        Fragment fragment = MessagesFragment.newInstance(FoldersDataStore.getInstance().toString());
+        Fragment fragment = MessagesFragment.newInstance(FoldersDataStore.getInstance().getFolders().get(0).getName());
         fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -99,9 +99,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         int id = item.getItemId();
         Fragment fragment = MessagesFragment.newInstance(item.getTitle().toString());
-        if (id == R.id.nav_inbox) {
-            toolbar.setTitle("Inbox");
-        } else if (id == R.id.nav_change) {
+        if (id == R.id.nav_change) {
             showDialog(IDD_CHANGE_ACCOUNT);
         } else if (id == R.id.nav_logout) {
             logout();
