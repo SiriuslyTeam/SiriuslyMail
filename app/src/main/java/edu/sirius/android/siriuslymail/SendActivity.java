@@ -12,6 +12,8 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import static edu.sirius.android.siriuslymail.PostService.SUCCESS_LOGIN;
@@ -52,7 +54,17 @@ public class SendActivity extends AppCompatActivity {
         send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //TODO place send action here
+                EditText to = findViewById(R.id.toEmail);
+                EditText copy = findViewById(R.id.copyEmail);
+                EditText subject = findViewById(R.id.subjectEmail);
+                EditText body = findViewById(R.id.send_full);
+                Message message = new Message();
+                message.body = body.toString();
+                message.subject = subject.toString();
+                message.to = to.toString();
+                message.from = UsersManager.getInstance().getActiveUser().getEmail();
+                message.copy = copy.toString();
+                PostServiceActions.postMessage(SendActivity.this, message);
                 finish();
             }
         });
@@ -65,6 +77,7 @@ public class SendActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 onBackPressed();
             }
         });

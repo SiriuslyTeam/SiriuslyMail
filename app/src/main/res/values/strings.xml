@@ -34,7 +34,7 @@
 
     <!-- Strings related to send -->
     <string name="prompt_copy">Copy</string>
-    <string name="prompt_topic">Topic</string>
+    <string name="prompt_subject">Subject</string>
     <string name="mail_text">Email text</string>
     <string name="send">send</string>
 

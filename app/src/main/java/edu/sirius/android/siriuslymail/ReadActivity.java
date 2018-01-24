@@ -1,5 +1,6 @@
 package edu.sirius.android.siriuslymail;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.TextView;
@@ -30,6 +32,7 @@ public class ReadActivity extends AppCompatActivity {
         activity.startActivity(intent);
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,12 +63,14 @@ public class ReadActivity extends AppCompatActivity {
         TextView subject = findViewById(R.id.subject);
         subject.setText(Html.fromHtml("<b>Subject: </b>" + message.subject));
 
-//        TextView readFull = findViewById(R.id.read_full);
-//        readFull.setText(Html.fromHtml(message.body));
-
         WebView readFull = findViewById(R.id.read_full);
-        //readFull.loadData(message.body, "text/html", "ASCII");
         readFull.loadDataWithBaseURL(null, message.body, "text/html", "UTF-8", null);
+        readFull.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                return (event.getAction() == MotionEvent.ACTION_MOVE);
+            }
+        });
 
         Log.d(TAG, "onCreate()");
     }

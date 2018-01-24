@@ -31,10 +31,10 @@
                 android:inputType="textEmailAddress" />
 
             <EditText
-                android:id="@+id/topic"
+                android:id="@+id/subjectEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="@string/prompt_topic"
+                android:hint="@string/prompt_subject"
                 android:inputType="textShortMessage" />
 
 
@@ -43,6 +43,7 @@
                 android:layout_height="match_parent">
 
                 <android.support.design.widget.TextInputEditText
+                    android:id="@+id/send_full"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:hint="@string/mail_text" />
