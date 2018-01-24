@@ -13,6 +13,8 @@ public class UsersManager {
     private List<User> logins = new ArrayList<>();
     private final Context context;
     private static UsersManager usersManager;
+    private String usersEmail;
+
     public UsersManager(Context context) {
         this.context = context;
     }
@@ -36,4 +38,15 @@ public class UsersManager {
     }
 
 
+    public List<String> getUsersEmail() {
+        List<String> emails = new ArrayList<>();
+        for (User user : DataBaseHelperLogin.getUsers(context)) {
+            emails.add(user.getEmail());
+        }
+        return emails;
+    }
+
+    public void updateActiveUser(String usersEmail) {
+        DataBaseHelperLogin.updateActiveUser(context, usersEmail);
+    }
 }

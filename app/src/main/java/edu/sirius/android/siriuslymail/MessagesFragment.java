@@ -73,9 +73,9 @@ public class MessagesFragment extends Fragment {
         messagesRecyclerView = rootView.findViewById(R.id.messages_recyclerview);
         mProgressView = rootView.findViewById(R.id.login_progress);
         messagesAdapter = new MessagesAdapter(getActivity());
-        PostServiceActions.getMessages(getActivity(), folderName);
         messagesRecyclerView.setAdapter(messagesAdapter);
         List<Message> messages = DataSource.getInstance().getMessages(folderName);
+        PostServiceActions.getMessages(getActivity(), folderName);
         messagesAdapter.setMessages(messages);
         showProgress(messages.isEmpty());
         messagesRecyclerView.setLayoutManager(new LinearLayoutManager(rootView.getContext()));

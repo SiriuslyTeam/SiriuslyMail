@@ -21,7 +21,7 @@ class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     private DataBaseHelper(Context context) {
-        super(context, "post", null, 1);
+        super(context, "Message", null, 1);
     }
 
     @Override
@@ -34,7 +34,8 @@ class DataBaseHelper extends SQLiteOpenHelper {
                 "Copy TEXT," +
                 "Subject TEXT," +
                 "Folder TEXT," +
-                "Body TEXT);");
+                "Body TEXT," +
+                "Email TEXT);");
     }
 
     @Override
@@ -42,9 +43,9 @@ class DataBaseHelper extends SQLiteOpenHelper {
 
     }
 
-    static List<Message> readFolder(Context context, String folder) {
+    static List<Message> readFolder(Context context, String folder, String email) {
         SQLiteDatabase database = getInstance(context).getReadableDatabase();
-        Cursor cursor = database.rawQuery("SELECT * FROM Message WHERE Folder=?", new String[]{folder});
+        Cursor cursor = database.rawQuery("SELECT * FROM Message WHERE Folder=? AND Email=?", new String[]{folder, email});
 
         if (cursor.getCount() == 0) {
             cursor.close();
@@ -69,22 +70,9 @@ class DataBaseHelper extends SQLiteOpenHelper {
         return messages;
     }
 
-    static Message readOne(Context context, Long id) {
-        SQLiteDatabase database = getInstance(context).getReadableDatabase();
-        Cursor cursorId = database.rawQuery("SELECT * FROM  Message WHERE id=?", new String[]{String.valueOf(id)});
-        if (cursorId.getCount() == 0) {
-            cursorId.close();
-            return null;
-        }
-        //DataSource.readData(cursor); TODO
-        cursorId.close();
-        Message message = new Message();
-        return message;
-    }
-
-    static void insertMany(Context context, List<Message> messages) {
+    static void insertMany(Context context, List<Message> messages, String email) {
         SQLiteDatabase database = getInstance(context).getWritableDatabase();
-        
+
         for (Message msg : messages) {
             ContentValues values = new ContentValues();
             values.put("FromUser", msg.from);
@@ -93,16 +81,13 @@ class DataBaseHelper extends SQLiteOpenHelper {
             values.put("Copy", msg.copy);
             values.put("Body", msg.body);
             values.put("Folder", msg.folder);
+            values.put("Email", email);
             database.insert("Message", null, values);
         }
     }
 
-    static void deleteOne(Context context, Long id) {
-        SQLiteDatabase database = getInstance(context).getWritableDatabase();
-        database.delete("Message", "id =" + id, null);
-    }
-
-    public static void clearMessages(Context context,String folder) {
-        getInstance(context).getWritableDatabase().delete("Message", "Folder=?", new String[] {folder});
+    public static void clearMessages(Context context, String folder, String email) {
+        getInstance(context).getWritableDatabase().delete("Message", "Folder=? AND Email=?",
+                new String[]{folder, email});
     }
 }

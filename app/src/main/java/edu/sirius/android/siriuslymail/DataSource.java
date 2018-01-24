@@ -21,21 +21,18 @@ public class DataSource {
         return dataSource;
     }
 
-    public Message getMessage(long id) {
-        return DataBaseHelper.readOne(context, id);
-    }
 
     public List<Message> getMessages(String folder) {
-        return DataBaseHelper.readFolder(context, folder);
+        return DataBaseHelper.readFolder(context, folder, UsersManager.getInstance().getActiveUser().getEmail());
     }
 
     public void saveMessages(List<Message> messages) {
-        DataBaseHelper.insertMany(context, messages);
+        DataBaseHelper.insertMany(context, messages, UsersManager.getInstance().getActiveUser().getEmail());
     }
 
     public void clearMessages(String folder) {
         // TODO
-        DataBaseHelper.clearMessages(context,folder);
+        DataBaseHelper.clearMessages(context,folder, UsersManager.getInstance().getActiveUser().getEmail());
     }
 
     public void dropDb() {

@@ -1,7 +1,5 @@
 package edu.sirius.android.siriuslymail;
 
-import android.bluetooth.BluetoothClass;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
@@ -15,6 +13,7 @@ public class PostServiceActions {
     public static final String GET_MESSAGES_ACTION = "GET_MESSAGES_ACTION";
     public static final String LOGIN_ACTION = "LOGIN_ACTION";
     public static final String POST_MESSAGE = "POST_MESSAGE";
+    public static final String GET_FOLDERS = "GET_FOLDERS";
     public static final String RETURN_RESULT = "RETURN_RESULT";
 
     private PostServiceActions() {
@@ -42,6 +41,12 @@ public class PostServiceActions {
         Intent intent = new Intent(context, PostService.class)
                 .setAction(POST_MESSAGE)
                 .putExtra("MESSAGE", message);
+        context.startService(intent);
+    }
+
+    public static void getFolders(Context context) {
+        Intent intent = new Intent(context, PostService.class)
+                .setAction(GET_FOLDERS);
         context.startService(intent);
     }
 }

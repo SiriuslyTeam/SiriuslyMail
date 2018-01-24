@@ -59,11 +59,11 @@ public class SendActivity extends AppCompatActivity {
                 EditText subject = findViewById(R.id.subjectEmail);
                 EditText body = findViewById(R.id.send_full);
                 Message message = new Message();
-                message.body = body.toString();
-                message.subject = subject.toString();
-                message.to = to.toString();
+                message.body = body.getText().toString();
+                message.subject = subject.getText().toString();
+                message.to = to.getText().toString();
                 message.from = UsersManager.getInstance().getActiveUser().getEmail();
-                message.copy = copy.toString();
+                message.copy = copy.getText().toString();
                 PostServiceActions.postMessage(SendActivity.this, message);
                 finish();
             }
