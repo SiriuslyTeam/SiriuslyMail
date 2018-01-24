@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.provider.ContactsContract;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +21,7 @@ class DataBaseHelperFolder extends SQLiteOpenHelper {
     }
 
     private DataBaseHelperFolder(Context context) {
-        super(context, "post", null, 1);
+        super(context, "Folder", null, 1);
     }
 
     @Override
@@ -32,21 +31,23 @@ class DataBaseHelperFolder extends SQLiteOpenHelper {
                 "FolderName);"
         );
     }
-    static void insertFolder(Context context, Folder folder, String email){
-        SQLiteDatabase database=getInstance(context).getWritableDatabase();
-        ContentValues values=new ContentValues();
+
+    static void insertFolder(Context context, Folder folder, String email) {
+        SQLiteDatabase database = getInstance(context).getWritableDatabase();
+        ContentValues values = new ContentValues();
         values.put("Email", email);
-        values.put("FolderName", folder.getFullName());
-        database.insert("FolderNameWithEmail",null,values);
+        values.put("FolderName", folder.getName());
+        database.insert("Folder", null, values);
     }
-    static List<String> getFolder(Context context, String email){
+
+    static List<String> getFolder(Context context, String email) {
         SQLiteDatabase database = getInstance(context).getReadableDatabase();
         Cursor cursor = database.rawQuery("SELECT * FROM  Folder WHERE Email=?", new String[]{email});
         if (cursor.getCount() == 0) {
             cursor.close();
             return null;
         }
-        List<String> folderList=new ArrayList<>();
+        List<String> folderList = new ArrayList<>();
         while (!cursor.isLast()) {
             cursor.moveToNext();
             String folder;

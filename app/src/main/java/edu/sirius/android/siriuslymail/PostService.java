@@ -1,49 +1,14 @@
 package edu.sirius.android.siriuslymail;
 
 import android.app.IntentService;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.IntentSender;
-import android.content.ServiceConnection;
-import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
-import android.content.res.AssetManager;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.database.DatabaseErrorHandler;
-import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.UserHandle;
-import android.os.UserManager;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
-import android.view.Display;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Properties;
 
 import javax.mail.BodyPart;
@@ -64,10 +29,10 @@ import static edu.sirius.android.siriuslymail.IntentConstants.FOLDER;
 import static edu.sirius.android.siriuslymail.IntentConstants.IMAP_HOST;
 import static edu.sirius.android.siriuslymail.IntentConstants.PASSWORD;
 import static edu.sirius.android.siriuslymail.IntentConstants.SMTP_HOST;
+import static edu.sirius.android.siriuslymail.PostServiceActions.GET_FOLDERS;
 import static edu.sirius.android.siriuslymail.PostServiceActions.GET_MESSAGES_ACTION;
 import static edu.sirius.android.siriuslymail.PostServiceActions.LOGIN_ACTION;
 import static edu.sirius.android.siriuslymail.PostServiceActions.POST_MESSAGE;
-import static edu.sirius.android.siriuslymail.PostServiceActions.RETURN_RESULT;
 
 public class PostService extends IntentService {
 
@@ -96,6 +61,9 @@ public class PostService extends IntentService {
             case POST_MESSAGE:
                 postMessage(intent);
                 break;
+            case GET_FOLDERS:
+                getFoldersForUser();
+                break;
 
         }
     }
@@ -109,10 +77,9 @@ public class PostService extends IntentService {
         try {
             Store store = session.getStore();
             store.connect(intent.getStringExtra(IMAP_HOST), intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD));
+            UsersManager.getInstance().saveUser(new User(intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD), intent.getStringExtra(IMAP_HOST), intent.getStringExtra(SMTP_HOST), (long) 0));
+            UsersManager.getInstance().updateActiveUser(intent.getStringExtra(EMAIL));
             isSuccess = true;
-            UsersManager.getInstance().saveUser(new User(intent.getStringExtra(EMAIL), intent.getStringExtra(PASSWORD), intent.getStringExtra(IMAP_HOST),intent.getStringExtra(SMTP_HOST), (long) 1));
-            javax.mail.Folder[] folders1 = store.getDefaultFolder().list("*");
-            FoldersDataStore.getInstance().setFolders(Arrays.asList(folders1));
         } catch (MessagingException e) {
             e.printStackTrace();
             isSuccess = false;
@@ -121,23 +88,28 @@ public class PostService extends IntentService {
         intent.putExtra(SUCCESS_LOGIN, isSuccess);
         LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
     }
+
     private void getFoldersForUser() {
         Properties props = new Properties();
         props.put("mail.store.protocol", "imaps");
         Session session = Session.getInstance(props);
-
+        boolean isSuccess;
         try {
             Store store = session.getStore();
-            store.connect(UsersManager.getInstance().getActiveUser().getImapHost(), UsersManager.getInstance().getActiveUser().getEmail(),UsersManager.getInstance().getActiveUser().getPassword());
+            store.connect(UsersManager.getInstance().getActiveUser().getImapHost(), UsersManager.getInstance().getActiveUser().getEmail(), UsersManager.getInstance().getActiveUser().getPassword());
             javax.mail.Folder[] folders1 = store.getDefaultFolder().list("*");
-            for (Folder i:folders1) {
-                DataBaseHelperFolder.insertFolder(PostService.this, i,UsersManager.getInstance().getActiveUser().getEmail());
+            for (Folder i : folders1) {
+                DataBaseHelperFolder.getInstance(this).insertFolder(PostService.this, i, UsersManager.getInstance().getActiveUser().getEmail());
             }
-            //FoldersDataStore.getInstance().setFolders(Arrays.asList(folders1));
+            isSuccess = true;
         } catch (MessagingException e) {
             e.printStackTrace();
+            isSuccess = false;
         }
 
+        Intent intent = new Intent(GET_FOLDERS);
+        intent.putExtra(SUCCESS_LOGIN, isSuccess);
+        LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
     }
 
     private void loadMessages(Intent intent) {
@@ -199,7 +171,7 @@ public class PostService extends IntentService {
     }
 
     private String getTextFromMimeMultipart(
-            MimeMultipart mimeMultipart)  throws MessagingException, IOException{
+            MimeMultipart mimeMultipart) throws MessagingException, IOException {
         String result = "";
         int count = mimeMultipart.getCount();
         for (int i = 0; i < count; i++) {
@@ -209,8 +181,8 @@ public class PostService extends IntentService {
                 break; // without break same text appears twice in my tests
             } else if (bodyPart.isMimeType("text/html")) {
                 result = (String) bodyPart.getContent();
-            } else if (bodyPart.getContent() instanceof MimeMultipart){
-                result = result + getTextFromMimeMultipart((MimeMultipart)bodyPart.getContent());
+            } else if (bodyPart.getContent() instanceof MimeMultipart) {
+                result = result + getTextFromMimeMultipart((MimeMultipart) bodyPart.getContent());
             }
         }
         return result;
@@ -218,67 +190,67 @@ public class PostService extends IntentService {
 
 
     private void postMessage(Intent intent) {
-            edu.sirius.android.siriuslymail.Message message = (edu.sirius.android.siriuslymail.Message) intent.getSerializableExtra("MESSAGE");
-            Properties props = new Properties();
-            User user=UsersManager.getInstance().getActiveUser();
-            String host=user.getSmtpHost();
-            String emailTo = message.to;
-            String body = message.body;
-            String subject = message.subject;
-            String emailFrom = user.getEmail();
-            String password =user.getPassword();
+        edu.sirius.android.siriuslymail.Message message = (edu.sirius.android.siriuslymail.Message) intent.getSerializableExtra("MESSAGE");
+        Properties props = new Properties();
+        User user = UsersManager.getInstance().getActiveUser();
+        String host = user.getSmtpHost();
+        String emailTo = message.to;
+        String body = message.body;
+        String subject = message.subject;
+        String emailFrom = user.getEmail();
+        String password = user.getPassword();
 
-            props.put("mail.smtp.host",host);
-            props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.host", host);
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
 
-            Session session = Session.getInstance(props);
-            boolean bool;
-            try {
-                // Получение объекта транспорта для передачи электронного сообщения
-                Transport bus = session.getTransport("smtp");
+        Session session = Session.getInstance(props);
+        boolean bool;
+        try {
+            // Получение объекта транспорта для передачи электронного сообщения
+            Transport bus = session.getTransport("smtp");
 
-                // Устанавливаем соединение один раз
-                // Метод Transport.send() отсоединяется после каждой отправки
-                //bus.connect();
-                // Обычно для SMTP сервера необходимо указать логин и пароль
-                bus.connect(host, emailFrom, password);
+            // Устанавливаем соединение один раз
+            // Метод Transport.send() отсоединяется после каждой отправки
+            //bus.connect();
+            // Обычно для SMTP сервера необходимо указать логин и пароль
+            bus.connect(host, emailFrom, password);
 
-                // Создание объекта сообщения
-                Message msg = new MimeMessage(session);
+            // Создание объекта сообщения
+            Message msg = new MimeMessage(session);
 
-                // Установка атрибутов сообщения
-                msg.setFrom(new InternetAddress(emailFrom));
-                InternetAddress[] address = {new InternetAddress(emailTo)};
-                msg.setRecipients(Message.RecipientType.TO, address);
+            // Установка атрибутов сообщения
+            msg.setFrom(new InternetAddress(emailFrom));
+            InternetAddress[] address = {new InternetAddress(emailTo)};
+            msg.setRecipients(Message.RecipientType.TO, address);
 
-                msg.setSubject(subject);
-                msg.setSentDate(new Date());
+            msg.setSubject(subject);
+            msg.setSentDate(new Date());
 
-                // Установка контента сообщения и отправка
-                MimeBodyPart textPart = new MimeBodyPart();
-                textPart.setContent(body, "text/plain");
-                Multipart multipart = new MimeMultipart();
-                multipart.addBodyPart(textPart);
-                msg.setContent(multipart);
+            // Установка контента сообщения и отправка
+            MimeBodyPart textPart = new MimeBodyPart();
+            textPart.setContent(body, "text/plain");
+            Multipart multipart = new MimeMultipart();
+            multipart.addBodyPart(textPart);
+            msg.setContent(multipart);
 
-                msg.saveChanges();
-                bus.sendMessage(msg, address);
+            msg.saveChanges();
+            bus.sendMessage(msg, address);
 
-                bus.close();
-                bool = true;
+            bus.close();
+            bool = true;
 
 
-            } catch (MessagingException mex) {
-                // Печать информации обо всех возможных возникших исключениях
-                mex.printStackTrace();
-                // Получение вложенного исключения
-                bool = false;
+        } catch (MessagingException mex) {
+            // Печать информации обо всех возможных возникших исключениях
+            mex.printStackTrace();
+            // Получение вложенного исключения
+            bool = false;
 
-            }
-      Intent intent1=new Intent(PostService.this, PostServiceActions.class)
+        }
+        Intent intent1 = new Intent(PostService.this, PostServiceActions.class)
                 .setAction(POST_MESSAGE)
                 .putExtra("IS_SUCCESS", bool);
-      LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent1);
-  }
+        LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent1);
+    }
 }
