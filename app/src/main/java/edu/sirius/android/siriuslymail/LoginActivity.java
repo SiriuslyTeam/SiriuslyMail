@@ -76,10 +76,6 @@ public class LoginActivity extends AppCompatActivity {
 
         mImapHostView = findViewById(R.id.imap_host);
         mSmtpHostView = findViewById(R.id.smtp_host);
-        mImapHostView.setText("imap.gmail.com");
-        mSmtpHostView.setText("smtp.gmail.com");
-        mPasswordView.setText("551995eytxf");
-        mEmailView.setText("artem.rudoj@gmail.com");
         Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
