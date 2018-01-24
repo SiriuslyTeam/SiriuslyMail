@@ -92,7 +92,7 @@ class DataBaseHelper extends SQLiteOpenHelper {
             values.put("Subject", msg.subject);
             values.put("Copy", msg.copy);
             values.put("Body", msg.body);
-            values.put("Folder", msg.folder);
+            values.put("FolderNameWithEmail", msg.folder);
             database.insert("Message", null, values);
         }
     }
@@ -103,6 +103,6 @@ class DataBaseHelper extends SQLiteOpenHelper {
     }
 
     public static void clearMessages(Context context,String folder) {
-        getInstance(context).getWritableDatabase().delete("Message", "Folder=?", new String[] {folder});
+        getInstance(context).getWritableDatabase().delete("Message", "FolderNameWithEmail=?", new String[] {folder});
     }
 }
