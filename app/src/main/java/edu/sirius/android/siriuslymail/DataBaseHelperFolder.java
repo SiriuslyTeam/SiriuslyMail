@@ -5,9 +5,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.provider.ContactsContract;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.mail.Folder;
 
 /**
  * Created by User on 24.01.2018.
@@ -29,32 +32,31 @@ class DataBaseHelperFolder extends SQLiteOpenHelper {
                 "FolderName);"
         );
     }
-    static void insertFolder(Context context, FolderNameWithEmail folderNameWithEmail){
+    static void insertFolder(Context context, Folder folder, String email){
         SQLiteDatabase database=getInstance(context).getWritableDatabase();
         ContentValues values=new ContentValues();
-        values.put("Email", folderNameWithEmail.getEmailFolder());
-        values.put("FolderName", folderNameWithEmail.getFolderName());
+        values.put("Email", email);
+        values.put("FolderName", folder.getFullName());
         database.insert("FolderNameWithEmail",null,values);
     }
-    static List<FolderNameWithEmail> getFolder(Context context, String email){
+    static List<String> getFolder(Context context, String email){
         SQLiteDatabase database = getInstance(context).getReadableDatabase();
         Cursor cursor = database.rawQuery("SELECT * FROM  Folder WHERE Email=?", new String[]{email});
         if (cursor.getCount() == 0) {
             cursor.close();
             return null;
         }
-        List<FolderNameWithEmail> folderNameWithEmailList=new ArrayList<>();
+        List<String> folderList=new ArrayList<>();
         while (!cursor.isLast()) {
             cursor.moveToNext();
-            FolderNameWithEmail folderNameWithEmail = new FolderNameWithEmail();
-            folderNameWithEmail.setEmail(cursor.getString(0));
-            folderNameWithEmail.setFolderName(cursor.getString(1));
-            folderNameWithEmailList.add(folderNameWithEmail);
+            String folder;
+            folder = cursor.getString(1);
+            folderList.add(folder);
         }
         //DataSource.readData(cursor); TODO
         cursor.close();
 
-        return folderNameWithEmailList;
+        return folderList;
     }
 
     @Override

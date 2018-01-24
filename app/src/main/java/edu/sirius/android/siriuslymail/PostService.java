@@ -130,7 +130,9 @@ public class PostService extends IntentService {
             Store store = session.getStore();
             store.connect(UsersManager.getInstance().getActiveUser().getImapHost(), UsersManager.getInstance().getActiveUser().getEmail(),UsersManager.getInstance().getActiveUser().getPassword());
             javax.mail.Folder[] folders1 = store.getDefaultFolder().list("*");
-
+            for (Folder i:folders1) {
+                DataBaseHelperFolder.insertFolder(PostService.this, i,UsersManager.getInstance().getActiveUser().getEmail());
+            }
             //FoldersDataStore.getInstance().setFolders(Arrays.asList(folders1));
         } catch (MessagingException e) {
             e.printStackTrace();
