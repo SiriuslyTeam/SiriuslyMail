@@ -216,7 +216,7 @@ public class PostService extends IntentService {
 
 
     private void postMessage(Intent intent) {
-            edu.sirius.android.siriuslymail.Message message = (edu.sirius.android.siriuslymail.Message) intent.getSerializableExtra("POST_MESSAGE");
+            edu.sirius.android.siriuslymail.Message message = (edu.sirius.android.siriuslymail.Message) intent.getSerializableExtra("MESSAGE");
             Properties props = new Properties();
             User user=UsersManager.getInstance().getActiveUser();
             String host=user.getSmtpHost();
