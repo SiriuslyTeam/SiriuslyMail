@@ -121,6 +121,22 @@ public class PostService extends IntentService {
         intent.putExtra(SUCCESS_LOGIN, isSuccess);
         LocalBroadcastManager.getInstance(PostService.this).sendBroadcast(intent);
     }
+    private void getFoldersForUser() {
+        Properties props = new Properties();
+        props.put("mail.store.protocol", "imaps");
+        Session session = Session.getInstance(props);
+
+        try {
+            Store store = session.getStore();
+            store.connect(UsersManager.getInstance().getActiveUser().getImapHost(), UsersManager.getInstance().getActiveUser().getEmail(),UsersManager.getInstance().getActiveUser().getPassword());
+            javax.mail.Folder[] folders1 = store.getDefaultFolder().list("*");
+
+            //FoldersDataStore.getInstance().setFolders(Arrays.asList(folders1));
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+
+    }
 
     private void loadMessages(Intent intent) {
         Properties props = new Properties();
