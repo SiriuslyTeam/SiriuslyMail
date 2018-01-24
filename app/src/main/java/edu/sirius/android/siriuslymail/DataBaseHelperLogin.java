@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by User on 20.01.2018.
@@ -36,6 +37,25 @@ public class DataBaseHelperLogin extends SQLiteOpenHelper {
 
     }
 
+    static List<User> getUsers(Context context){
+        SQLiteDatabase database = getInstance(context).getReadableDatabase();
+        Cursor cursor = database.rawQuery("SELECT * FROM Login=?",null);
+        cursor.moveToNext();
+        List<User> users = new ArrayList<>();
+        while (!cursor.isLast()) {
+            cursor.moveToNext();
+            User user = new User();
+            user.setEmail(cursor.getString(0));
+            user.setPassword(cursor.getString(1));
+            user.setActive(cursor.getLong(2));
+            user.setSmtpHost(cursor.getString(3));
+            user.setImapHost(cursor.getString(4));
+            users.add(user);
+        }
+
+        cursor.close();
+        return users;
+    }
 
     static User getActive(Context context) {
         SQLiteDatabase database = getInstance(context).getReadableDatabase();
