@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         FragmentManager fragmentManager = getSupportFragmentManager();
-        Fragment fragment = MessagesFragment.newInstance(FoldersDataStore.getInstance().getFolders().get(0).getName());
+        Fragment fragment = MessagesFragment.newInstance("INBOX");
         fragmentManager.beginTransaction().replace(R.id.container, fragment).commit();
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
