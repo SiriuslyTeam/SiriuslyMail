@@ -9,10 +9,6 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by User on 20.01.2018.
- */
-
 public class DataBaseHelperLogin extends SQLiteOpenHelper {
 
     static DataBaseHelperLogin getInstance(Context context) {
@@ -40,7 +36,6 @@ public class DataBaseHelperLogin extends SQLiteOpenHelper {
     static List<User> getUsers(Context context){
         SQLiteDatabase database = getInstance(context).getReadableDatabase();
         Cursor cursor = database.rawQuery("SELECT * FROM Login=?",null);
-        cursor.moveToNext();
         List<User> users = new ArrayList<>();
         while (!cursor.isLast()) {
             cursor.moveToNext();

@@ -8,11 +8,14 @@ import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
+import android.util.Base64;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.TextView;
+
+import java.io.UnsupportedEncodingException;
 
 import javax.mail.Multipart;
 
@@ -52,7 +55,76 @@ public class ReadActivity extends AppCompatActivity {
         Message message = (Message) intent.getSerializableExtra(MESSAGE);
 
         TextView from = findViewById(R.id.from);
-        from.setText(Html.fromHtml("<b>From: </b>" + message.from));
+        String fromEncoded = "";
+        try {
+            String needToDecode = message.from;
+            if (needToDecode.startsWith("=?utf-8?B?")) {
+                String[] parts = needToDecode.split("\\?=");
+                parts[0] = parts[0].replace("=?utf-8?B?", "");
+                byte[] data;
+                if (parts.length > 1) {
+                    parts[1] = parts[1].replace("?=", "");
+                    data = Base64.decode(parts[0], Base64.DEFAULT);
+                    fromEncoded = new String(data, "UTF-8") + parts[1];
+                } else {
+                    data = Base64.decode(parts[0], Base64.DEFAULT);
+                    fromEncoded = new String(data, "UTF-8");
+                }
+            } else if (needToDecode.startsWith("=?UTF-8?B?")) {
+                String[] parts = needToDecode.split("\\?=");
+                parts[0] = parts[0].replace("=?UTF-8?B?", "");
+                byte[] data;
+                if (parts.length > 1) {
+                    parts[1] = parts[1].replace("?=", "");
+                    data = Base64.decode(parts[0], Base64.DEFAULT);
+                    fromEncoded = new String(data, "UTF-8") + parts[1];
+                } else {
+                    data = Base64.decode(parts[0], Base64.DEFAULT);
+                    fromEncoded = new String(data, "UTF-8");
+                }
+            } else if (needToDecode.startsWith("=?utf-8?b?")) {
+                String[] parts = needToDecode.split("\\?=");
+                parts[0] = parts[0].replace("=?utf-8?b?", "");
+                byte[] data;
+                if (parts.length > 1) {
+                    parts[1] = parts[1].replace("?=", "");
+                    data = Base64.decode(parts[0], Base64.DEFAULT);
+                    fromEncoded = new String(data, "UTF-8") + parts[1];
+                } else {
+                    data = Base64.decode(parts[0], Base64.DEFAULT);
+                    fromEncoded = new String(data, "UTF-8");
+                }
+            } else if (needToDecode.startsWith("=?utf-8?Q?")) {
+                String[] parts = needToDecode.split("\\?=");
+                parts[0] = parts[0].replace("=?utf-8?Q?", "");
+                byte[] data;
+                if (parts.length > 1) {
+                    parts[1] = parts[1].replace("?=", "");
+                    data = Base64.decode(parts[0], Base64.DEFAULT);
+                    fromEncoded = new String(data, "UTF-8") + parts[1];
+                } else {
+                    data = Base64.decode(parts[0], Base64.DEFAULT);
+                    fromEncoded = new String(data, "UTF-8");
+                }
+            } else if (needToDecode.startsWith("=?UTF-8?q?")) {
+                String[] parts = needToDecode.split("\\?=");
+                parts[0] = parts[0].replace("=?UTF-8?q?", "");
+                byte[] data;
+                if (parts.length > 1) {
+                    parts[1] = parts[1].replace("?=", "");
+                    data = Base64.decode(parts[0], Base64.DEFAULT);
+                    fromEncoded = new String(data, "UTF-8") + parts[1];
+                } else {
+                    data = Base64.decode(parts[0], Base64.DEFAULT);
+                    fromEncoded = new String(data, "UTF-8");
+                }
+            } else {
+                fromEncoded = message.from;
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        from.setText(Html.fromHtml("<b>From: </b>" + fromEncoded));
 
         TextView to = findViewById(R.id.to);
         to.setText(Html.fromHtml("<b>To: </b>" + message.to));
@@ -65,12 +137,12 @@ public class ReadActivity extends AppCompatActivity {
 
         WebView readFull = findViewById(R.id.read_full);
         readFull.loadDataWithBaseURL(null, message.body, "text/html", "UTF-8", null);
-        readFull.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent event) {
-                return (event.getAction() == MotionEvent.ACTION_MOVE);
-            }
-        });
+//        readFull.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View view, MotionEvent event) {
+//                return (event.getAction() == MotionEvent.ACTION_MOVE);
+//            }
+//        });
 
         Log.d(TAG, "onCreate()");
     }

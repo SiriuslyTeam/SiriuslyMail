@@ -15,6 +15,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +24,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.List;
 
@@ -110,7 +113,74 @@ public class MessagesFragment extends Fragment {
 
         void bind(Message message) {
             id = message.id;
-            textItemFrom.setText(message.from);
+            try {
+                String needToDecode = message.from;
+                if (needToDecode.startsWith("=?utf-8?B?")) {
+                    String[] parts = needToDecode.split("\\?=");
+                    parts[0] = parts[0].replace("=?utf-8?B?", "");
+                    byte[] data;
+                    if (parts.length > 1) {
+                        parts[1] = parts[1].replace("?=", "");
+                        data = Base64.decode(parts[0], Base64.DEFAULT);
+                        textItemFrom.setText(new String(data, "UTF-8") + parts[1]);
+                    } else {
+                        data = Base64.decode(parts[0], Base64.DEFAULT);
+                        textItemFrom.setText(new String(data, "UTF-8"));
+                    }
+                } else if (needToDecode.startsWith("=?UTF-8?B?")) {
+                    String[] parts = needToDecode.split("\\?=");
+                    parts[0] = parts[0].replace("=?UTF-8?B?", "");
+                    byte[] data;
+                    if (parts.length > 1) {
+                        parts[1] = parts[1].replace("?=", "");
+                        data = Base64.decode(parts[0], Base64.DEFAULT);
+                        textItemFrom.setText(new String(data, "UTF-8") + parts[1]);
+                    } else {
+                        data = Base64.decode(parts[0], Base64.DEFAULT);
+                        textItemFrom.setText(new String(data, "UTF-8"));
+                    }
+                } else if (needToDecode.startsWith("=?utf-8?b?")) {
+                    String[] parts = needToDecode.split("\\?=");
+                    parts[0] = parts[0].replace("=?utf-8?b?", "");
+                    byte[] data;
+                    if (parts.length > 1) {
+                        parts[1] = parts[1].replace("?=", "");
+                        data = Base64.decode(parts[0], Base64.DEFAULT);
+                        textItemFrom.setText(new String(data, "UTF-8") + parts[1]);
+                    } else {
+                        data = Base64.decode(parts[0], Base64.DEFAULT);
+                        textItemFrom.setText(new String(data, "UTF-8"));
+                    }
+                } else if (needToDecode.startsWith("=?utf-8?Q?")) {
+                    String[] parts = needToDecode.split("\\?=");
+                    parts[0] = parts[0].replace("=?utf-8?Q?", "");
+                    byte[] data;
+                    if (parts.length > 1) {
+                        parts[1] = parts[1].replace("?=", "");
+                        data = Base64.decode(parts[0], Base64.DEFAULT);
+                        textItemFrom.setText(new String(data, "UTF-8") + parts[1]);
+                    } else {
+                        data = Base64.decode(parts[0], Base64.DEFAULT);
+                        textItemFrom.setText(new String(data, "UTF-8"));
+                    }
+                } else if (needToDecode.startsWith("=?UTF-8?q?")) {
+                    String[] parts = needToDecode.split("\\?=");
+                    parts[0] = parts[0].replace("=?UTF-8?q?", "");
+                    byte[] data;
+                    if (parts.length > 1) {
+                        parts[1] = parts[1].replace("?=", "");
+                        data = Base64.decode(parts[0], Base64.DEFAULT);
+                        textItemFrom.setText(new String(data, "UTF-8") + parts[1]);
+                    } else {
+                        data = Base64.decode(parts[0], Base64.DEFAULT);
+                        textItemFrom.setText(new String(data, "UTF-8"));
+                    }
+                } else {
+                    textItemFrom.setText(message.from);
+                }
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
             textItemTopic.setText(message.subject);
         }
     }

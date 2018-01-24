@@ -22,6 +22,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import java.util.Objects;
 
@@ -64,6 +65,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         for (String i : a) {
             menu.add(i);
         }
+
+        User user = UsersManager.getInstance().getActiveUser();
+        TextView account = navigationView.getHeaderView(0).findViewById(R.id.account);
+        account.setText(user.getEmail());
     }
 
     @Override
